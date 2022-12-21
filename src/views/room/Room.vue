@@ -151,8 +151,8 @@
         :visible.sync="gameOverDialogVisible"
         width="30%"
         center>
-      <span>赢家是：{{ winner&&winner.user? winner.user.uname:'' }}</span>
-      <span>总粮食：{{ winner? (winner.score+'米'):'' }}</span>
+      <span>赢家是：{{ (winner&&winner.user)? winner.user.uname:'' }}</span>
+      <span style="margin-left: 10px">总粮食：{{ winner? (winner.rice+'米'):'' }}</span>
       <span slot="footer" class="dialog-footer">
         <el-button type="primary" @click="gameOverDialogVisible = false">确 定</el-button>
       </span>
@@ -231,6 +231,7 @@ export default {
      */
     wsInit() {
       let wsuri = 'ws://localhost:8081/websocket/'+this.user.uid
+      // let wsuri = 'ws://114.115.131.120:8081/websocket/'+this.user.uid
       this.ws = wsuri
       if (!this.wsIsRun) return
       // 销毁ws
@@ -329,11 +330,12 @@ export default {
         case 'GAME_OVER':
           this.roomInfo = redata.data
           this.refreshByRoomInfo()
-          for (const winner in this.roomInfo.winners) {
-            if (!winner.isBankruptcy) {
-              this.winner = winner
+          this.roomInfo.players.forEach((player)=>{
+            debugger
+            if (!player.bankruptcy) {
+              this.winner = player
             }
-          }
+          })
           this.gameOverDialogVisible = true
           break
       }
