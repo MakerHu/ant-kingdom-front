@@ -15,6 +15,7 @@ Vue.use(ElementUI) // element ui 插件
 Vue.use(VueRouter) // 路由插件
 Vue.use(VueAxios, axios) // 使用 axios 插件
 
+
 // 创建 Vue 实例对象
 new Vue({
   render: h => h(App),  // render 函数将帮助解析模板，传入的参数 h 为一个函数，该函数可用来解析 App 这个组件
