@@ -2,11 +2,14 @@
   <div class="room-content">
     <el-row class="row-one">
       <el-col class="loc-center" :span="4" style="background-color: orange">
-          <el-avatar style="height: 80px;width: 80px" src="https://cube.elemecdn.com/0/88/03b0d39583f48206768a7534e55bcpng.png"></el-avatar>
+        <div>
+          <el-avatar v-if="enemy&&enemy.user" style="height: 80px;width: 80px" src="https://cube.elemecdn.com/0/88/03b0d39583f48206768a7534e55bcpng.png"></el-avatar>
+          <div>{{ enemy&&enemy.user ? enemy.user.uname:'' }}</div>
+        </div>
       </el-col>
       <el-col :span="16" style="background-color: gray">
         <el-row style="height: 100%;" :gutter="5">
-          <el-col :span="3" v-for="o in 8" :key="o" class="loc-center">
+          <el-col :span="3" v-for="(idleCard,index) in enemy?enemy.idleCardList:[]" :key="'key1'+index" class="loc-center">
             <el-card class="box-card loc-center" :body-style="{ padding: '0px' }">
               <img src="../../assets/ant.png" alt="蚂蚁" height="50">
             </el-card>
@@ -28,16 +31,32 @@
             <span>计分板</span>
           </div>
           <div>
-            {{ enemy ? enemy.user.uname:'' }}
+            {{ enemy&&enemy.user ? enemy.user.uname:'' }}:{{ enemy ? enemy.score:'' }}
+          </div>
+          <div>
+            {{ player&&player.user ? player.user.uname:'' }}:{{ player ? player.score:'' }}
           </div>
         </el-card>
       </el-col>
       <el-col :span="12" style="background-color: orange">
         <el-row class="center-row" :gutter="5" style="background-color: chartreuse">
-          <el-col :span="6" v-for="o in 4" :key="o" class="loc-center">
-            <el-card class="box-card">
-              <div v-for="o in 4" :key="o">
-                {{'列表内容 ' + o }}
+          <el-col :span="6" v-for="(showCard,index) in enemy? enemy.showCardList:[]" :key="'key2'+index" class="loc-center">
+            <el-card class="box-card loc-center" :body-style="{ padding: '0px' }">
+              <img v-if="!showBright" src="../../assets/ant.png" alt="蚂蚁" height="50">
+              <div v-else>
+                <div><span>卡名：</span><span>{{ showCard.name }}</span></div>
+                <div><span>消耗米粒：</span><span>{{ showCard.rice }}</span></div>
+                <div><span>基础战力：</span><span>{{ showCard.initValue }}</span></div>
+              </div>
+            </el-card>
+          </el-col>
+          <el-col :span="6" v-for="(showCard,index) in enemy? enemy.hideCardList:[]" :key="'key3'+index" class="loc-center">
+            <el-card class="box-card loc-center" :body-style="{ padding: '0px' }">
+              <img v-if="!showHide" src="../../assets/ant.png" alt="蚂蚁" height="50">
+              <div v-else>
+                <div><span>卡名：</span><span>{{ showCard.name }}</span></div>
+                <div><span>消耗米粒：</span><span>{{ showCard.rice }}</span></div>
+                <div><span>基础战力：</span><span>{{ showCard.initValue }}</span></div>
               </div>
             </el-card>
           </el-col>
@@ -57,18 +76,33 @@
           </el-col>
         </el-row>
         <el-row class="center-row" :gutter="5" style="background-color: chartreuse">
-          <el-col :span="6" v-for="o in 4" :key="o" class="loc-center">
-            <el-card class="box-card">
-              <div v-for="o in 4" :key="o">
-                {{'列表内容 ' + o }}
+          <el-col :span="6" v-for="(showCard,index) in player? player.showCardList:[]" :key="'key4'+index" class="loc-center">
+            <el-card class="box-card loc-center" :body-style="{ padding: '0px' }">
+              <img v-if="!showBright" src="../../assets/ant.png" alt="蚂蚁" height="50">
+              <div v-else>
+                <div><span>卡名：</span><span>{{ showCard.name }}</span></div>
+                <div><span>消耗米粒：</span><span>{{ showCard.rice }}</span></div>
+                <div><span>基础战力：</span><span>{{ showCard.initValue }}</span></div>
+              </div>
+            </el-card>
+          </el-col>
+          <el-col :span="6" v-for="(showCard,index) in player? player.hideCardList:[]" :key="'key5'+index" class="loc-center">
+            <el-card class="box-card loc-center" :body-style="{ padding: '0px' }">
+              <img v-if="!showHide" src="../../assets/ant.png" alt="蚂蚁" height="50">
+              <div v-else>
+                <div><span>卡名：</span><span>{{ showCard.name }}</span></div>
+                <div><span>消耗米粒：</span><span>{{ showCard.rice }}</span></div>
+                <div><span>基础战力：</span><span>{{ showCard.initValue }}</span></div>
               </div>
             </el-card>
           </el-col>
         </el-row>
       </el-col>
       <el-col :span="6" class="loc-center" style="background-color: gray">
-        <img src="../../assets/forest.png" alt="野外" height="200">
+        <img src="../../assets/forest.png" alt="野外" height="200" @click="drawCard()">
         <el-button v-show="this.playCardList.length == 2 && (this.currentStatus == 'show' || this.currentStatus == 'hide')" @click="playCards()">出牌</el-button>
+        <el-button v-show="showEndBtn" :disabled="endBtnDisable" @click="endThisRound()">结束本回合</el-button>
+        <el-button v-show="showNextRound" :disabled="nextRoundBtnDisable" @click="nextRound()">继续</el-button>
       </el-col>
     </el-row>
 
@@ -78,11 +112,12 @@
           <div>粮仓</div>
           <div>{{ player ? player.rice:'' }}</div>
         </el-card>
+        <span v-if="showChangeRice" style="margin-left: 5px">{{ (player&&player.changeRice>=0)? '+':'' }}{{ player? player.changeRice:'' }}</span>
       </el-col>
       <el-col :span="16">
         <el-row style="height: 100%;" :gutter="5">
-          <el-col :span="3" v-for="(idleCard,index) in player?player.idleCardList:[]" :key="index" class="loc-center">
-            <el-card class="box-card" :shadow="idleCard.shadow? 'always':'never'" :body-style="cardBodyStyle" @click.native="idleCard.shadow = selectCard(index, idleCard.shadow)">
+          <el-col :span="3" v-for="(idleCard,index) in player?player.idleCardList:[]" :key="'key6'+index" class="loc-center">
+            <el-card :class="idleCard.shadow?'selected-card':'box-card'" :shadow="idleCard.shadow? 'always':'never'" :body-style="cardBodyStyle" @click.native="idleCard.shadow = selectCard(index, idleCard.shadow)">
               <div>
                 <div><span>卡名：</span><span>{{ idleCard.name }}</span></div>
                 <div><span>消耗米粒：</span><span>{{ idleCard.rice }}</span></div>
@@ -93,9 +128,35 @@
         </el-row>
       </el-col>
       <el-col class="loc-center" :span="4" style="background-color: orange">
-        <el-avatar style="height: 80px;width: 80px" src="https://cube.elemecdn.com/0/88/03b0d39583f48206768a7534e55bcpng.png"></el-avatar>
+        <div>
+          <el-avatar style="height: 80px;width: 80px" src="https://cube.elemecdn.com/0/88/03b0d39583f48206768a7534e55bcpng.png"></el-avatar>
+          <div>{{ player? player.user.uname:'' }}</div>
+        </div>
       </el-col>
     </el-row>
+
+    <el-dialog
+        title="确认"
+        :visible.sync="drawCardDialogVisible"
+        width="30%">
+      <span>是否确定花5米兑换一张手牌？</span>
+      <span slot="footer" class="dialog-footer">
+        <el-button @click="drawCardDialogVisible = false">取 消</el-button>
+        <el-button type="primary" @click="confirmDrawCard">确 定</el-button>
+      </span>
+    </el-dialog>
+
+    <el-dialog
+        title="游戏结束"
+        :visible.sync="gameOverDialogVisible"
+        width="30%"
+        center>
+      <span>赢家是：{{ winner&&winner.user? winner.user.uname:'' }}</span>
+      <span>总粮食：{{ winner? (winner.score+'米'):'' }}</span>
+      <span slot="footer" class="dialog-footer">
+        <el-button type="primary" @click="gameOverDialogVisible = false">确 定</el-button>
+      </span>
+    </el-dialog>
   </div>
 </template>
 
@@ -118,9 +179,32 @@ export default {
       ready: false,
       roomInfo: null,
       player: null,
-      enemy: this.player,
+      enemy: null,
+      winner: null,
+
       playCardList: [],
-      currentStatus: 'show',// 当前状态show可以出明牌，hide可以出隐藏牌
+      currentStatus: 'show',// 当前状态show可以出明牌，hide可以出隐藏牌，end一回合结束
+      showBright: false,
+      showHide: false,
+      showChangeRice: false,
+
+      //出牌
+      canPlayCard: true,
+
+      //结束本回合
+      showEndBtn: false,
+      endBtnDisable: false,
+
+      //继续按钮
+      showNextRound: false,
+      nextRoundBtnDisable: false,
+
+      //抽卡弹窗
+      drawCardDialogVisible: false,
+
+      //游戏结束弹窗
+      gameOverDialogVisible: false,
+
 
       cardBodyStyle: {
         padding: '5px',
@@ -187,14 +271,70 @@ export default {
         case 'MSG':
           console.log(redata.data)
           break
-        case 'START':
-          this.roomInfo = redata.data
-          this.refreshByRoomInfo();
-          this.currentStatus = 'show'
+        case 'ALERT':
+          this.$message({
+            message: redata.data,
+            type: "warning",
+          });
+          break
+        case 'CONTINUE_ALERT':
+          this.nextRoundBtnDisable = false
+          this.$message({
+            message: redata.data,
+            type: "warning",
+          });
           break
         case 'REFRESH':
           this.roomInfo = redata.data
           this.refreshByRoomInfo();
+          break
+        case 'START':
+          this.roomInfo = redata.data
+          this.refreshByRoomInfo();
+          this.roundInit()
+          this.$notify.success({
+            title: '回合开始！',
+            showClose: false,
+            offset: 150
+          });
+          break
+        case 'SHOW_OUT':
+          this.roomInfo = redata.data
+          this.refreshByRoomInfo();
+          this.currentStatus = 'hide'
+          this.showBright = true
+          this.canPlayCard = true
+          break
+        case 'HIDE_OUT':
+          this.roomInfo = redata.data
+          this.refreshByRoomInfo();
+          this.showHide = true
+          this.showEndBtn = true
+          this.$message({
+            message: '你可以选择修改环境或结束本回合',
+            type: "warning",
+          });
+          break
+        case 'END_OUT':
+          this.roomInfo = redata.data
+          this.refreshByRoomInfo()
+          this.currentStatus = 'end'
+          this.showChangeRice = true
+          this.showEndBtn = false
+          this.showNextRound = true
+          setTimeout(()=>{
+            this.showChangeRice = false
+          },5000)
+          break
+        case 'GAME_OVER':
+          this.roomInfo = redata.data
+          this.refreshByRoomInfo()
+          for (const winner in this.roomInfo.winners) {
+            if (!winner.isBankruptcy) {
+              this.winner = winner
+            }
+          }
+          this.gameOverDialogVisible = true
           break
       }
     },
@@ -283,12 +423,85 @@ export default {
      * 出牌
      */
     playCards(){
-      if (this.playCardList.length == 2 && this.currentStatus == 'show') {
-        this.sendDataToServer('SHOW#'+this.playCardList[0]+'#'+this.playCardList[1])
-        this.playCardList = []
-      } else if (this.playCardList.length == 2 && this.currentStatus == 'hide') {
-        this.sendDataToServer('HIDE#'+this.playCardList[0]+'#'+this.playCardList[1])
-        this.playCardList = []
+      if (this.canPlayCard) {
+        this.canPlayCard = false
+        if (this.playCardList.length == 2 && this.currentStatus == 'show') {
+          this.sendDataToServer('SHOW#'+this.playCardList[0]+'#'+this.playCardList[1])
+          this.playCardList = []
+        } else if (this.playCardList.length == 2 && this.currentStatus == 'hide') {
+          this.sendDataToServer('HIDE#'+this.playCardList[0]+'#'+this.playCardList[1])
+          this.playCardList = []
+        }
+      } else {
+        this.$message({
+          message: '当前不能出牌！',
+          type: "warning",
+        });
+      }
+
+    },
+    /**
+     * 结束本回合
+     */
+    endThisRound(){
+      this.endBtnDisable = true
+      this.sendDataToServer('END')
+    },
+    /**
+     * 下一回合
+     */
+    nextRound(){
+      this.nextRoundBtnDisable = true
+      this.sendDataToServer('CONTINUE')
+    },
+    /**
+     * 抽卡
+     */
+    drawCard(){
+      if (this.currentStatus == 'end' && this.nextRoundBtnDisable == false){
+        this.drawCardDialogVisible = true
+      } else {
+        this.$message({
+          message: '回合结束时才能补充手牌',
+          type: "warning",
+        });
+      }
+    },
+    confirmDrawCard(){
+      this.drawCardDialogVisible = false
+      this.sendDataToServer('BRAND')
+    },
+    /**
+     * 回合初始化
+     */
+    roundInit(){
+      this.playCardList = []
+      this.currentStatus = 'show'// 当前状态show可以出明牌，hide可以出隐藏牌，end一回合结束
+      this.showBright = false
+      this.showHide = false
+      this.showChangeRice = false
+
+      //出牌
+      this.canPlayCard = true
+
+      //结束本回合
+      this.showEndBtn = false
+      this.endBtnDisable = false
+
+      //继续按钮
+      this.showNextRound = false
+      this.nextRoundBtnDisable = false
+
+      //抽卡弹窗
+      this.drawCardDialogVisible = false
+
+      if (this.player){
+        this.player.showCardList = []
+        this.player.hideCardList = []
+      }
+      if (this.enemy){
+        this.enemy.showCardList = []
+        this.enemy.hideCardList = []
       }
     }
   },
@@ -358,4 +571,10 @@ export default {
   display: flex;
 }
 
+.selected-card {
+  height: 90%;
+  width: 100%;
+  font-size: small;
+  background-color: aqua;
+}
 </style>
