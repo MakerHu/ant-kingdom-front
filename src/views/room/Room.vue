@@ -27,10 +27,10 @@
       <el-col :span="6" class="loc-center" style="background-color: gray">
         <el-card>
           <div slot="header" class="loc-center">
-            <span>卡片名称</span>
+            <span>计分板</span>
           </div>
-          <div v-for="o in 4" :key="o">
-            {{'列表内容 ' + o }}
+          <div>
+            {{ enemy ? enemy.user.uname:'' }}
           </div>
         </el-card>
       </el-col>
@@ -46,9 +46,14 @@
         </el-row>
         <el-row class="center-row-two" :gutter="5" style="background-color: aqua">
           <el-col :span="24" class="loc-center">
-            <el-card class="box-card">
-              <div v-for="o in 4" :key="o">
-                {{'列表内容 ' + o }}
+            <el-card style="width:20%;height: 90%" :body-style="{ padding: '0px' }">
+              <div>
+                <span>环境：</span>
+                <span>{{ roomInfo && roomInfo.environmentCard ? roomInfo.environmentCard.name:'' }}</span>
+              </div>
+              <div>
+                <span>消耗：</span>
+                <span>{{ roomInfo ? roomInfo.environmentRice:'' }}米</span>
               </div>
             </el-card>
           </el-col>
@@ -64,31 +69,26 @@
         </el-row>
       </el-col>
       <el-col :span="6" class="loc-center" style="background-color: gray">
-        <el-card>
-          <div slot="header" class="loc-center">
-            <span>卡片名称</span>
-          </div>
-          <div v-for="o in 4" :key="o">
-            {{'列表内容 ' + o }}
-          </div>
-        </el-card>
+        <img src="../../assets/forest.png" alt="野外" height="200">
+        <el-button v-show="this.showCardList.length == 2 && (this.currentStatus == 'show' || this.currentStatus == 'hide')" @click="playCards()">出牌</el-button>
       </el-col>
     </el-row>
 
     <el-row class="row-one">
       <el-col class="loc-center" :span="4" style="background-color: orange">
         <el-card>
-          <div>
-            粮仓
-          </div>
+          <div>粮仓</div>
+          <div>{{ player ? player.rice:'' }}</div>
         </el-card>
       </el-col>
-      <el-col :span="16" style="background-color: gray">
+      <el-col :span="16">
         <el-row style="height: 100%;" :gutter="5">
           <el-col :span="3" v-for="(idleCard,index) in player?player.idleCardList:[]" :key="index" class="loc-center">
-            <el-card class="box-card">
+            <el-card class="box-card" :shadow="idleCard.shadow? 'always':'never'" :body-style="cardBodyStyle" @click.native="idleCard.shadow = selectCard(index, idleCard.shadow)">
               <div>
-                {{'卡名' + idleCard?idleCard.name:'' }}
+                <div><span>卡名：</span><span>{{ idleCard.name }}</span></div>
+                <div><span>消耗米粒：</span><span>{{ idleCard.rice }}</span></div>
+                <div><span>基础战力：</span><span>{{ idleCard.initValue }}</span></div>
               </div>
             </el-card>
           </el-col>
@@ -120,6 +120,15 @@ export default {
       ready: false,
       roomInfo: null,
       player: null,
+      enemy: this.player,
+      showCardList: [],
+      hideCardList: [],
+      currentStatus: 'show',// 当前状态show可以出明牌，hide可以出隐藏牌
+
+      cardBodyStyle: {
+        padding: '5px',
+        textAlign: 'left'
+      },
     };
   },
   filters: {
@@ -181,8 +190,12 @@ export default {
         case 'MSG':
           console.log(redata.data)
           break
+        case 'START':
+          this.roomInfo = redata.data
+          this.refreshByRoomInfo();
+          this.currentStatus = 'show'
+          break
         case 'REFRESH':
-          debugger
           this.roomInfo = redata.data
           this.refreshByRoomInfo();
           break
@@ -231,9 +244,47 @@ export default {
       this.roomInfo.players.forEach((item) => {
         if (item.user.uid == this.user.uid) {
           this.player = item
+          if (this.player.idleCardList) {
+            this.player.idleCardList.forEach((card) => {
+              this.$set(card, 'shadow', false)
+            })
+          }
+        } else {
+          this.enemy = item
         }
       })
-
+    },
+    /**
+     * 选择卡片
+     * @param index
+     */
+    selectCard(index, shadow){
+      if (!shadow && this.showCardList.length>=2){
+        this.$message({
+          message: '只能选择两张亮牌',
+          type: "warning",
+        });
+        return shadow
+      } else {
+        let index2 = this.showCardList.indexOf(index)
+        if (index2 > -1) {
+          this.showCardList.splice(index2, 1)
+        }
+        if (!shadow){
+          this.showCardList.push(index);
+        }
+        return !shadow
+      }
+    },
+    /**
+     * 出牌
+     */
+    playCards(){
+      if (this.showCardList.length == 2 && this.currentStatus == 'show') {
+        this.sendDataToServer('SHOW#'+this.showCardList[0]+'#'+this.showCardList[1])
+      } else if (this.showCardList.length == 2 && this.currentStatus == 'hide') {
+        this.sendDataToServer('HIDE#'+this.showCardList[0]+'#'+this.showCardList[1])
+      }
     }
   },
   async mounted() {
@@ -285,6 +336,8 @@ export default {
 
 .box-card {
   height: 90%;
+  width: 100%;
+  font-size: small;
 }
 
 .center-row {
