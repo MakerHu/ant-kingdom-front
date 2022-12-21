@@ -7,10 +7,8 @@
       <el-col :span="16" style="background-color: gray">
         <el-row style="height: 100%;" :gutter="5">
           <el-col :span="3" v-for="o in 8" :key="o" class="loc-center">
-            <el-card class="box-card">
-              <div v-for="o in 4" :key="o">
-                {{'列表内容 ' + o }}
-              </div>
+            <el-card class="box-card loc-center" :body-style="{ padding: '0px' }">
+              <img src="../../assets/ant.png" alt="蚂蚁" height="50">
             </el-card>
           </el-col>
         </el-row>
@@ -70,7 +68,7 @@
       </el-col>
       <el-col :span="6" class="loc-center" style="background-color: gray">
         <img src="../../assets/forest.png" alt="野外" height="200">
-        <el-button v-show="this.showCardList.length == 2 && (this.currentStatus == 'show' || this.currentStatus == 'hide')" @click="playCards()">出牌</el-button>
+        <el-button v-show="this.playCardList.length == 2 && (this.currentStatus == 'show' || this.currentStatus == 'hide')" @click="playCards()">出牌</el-button>
       </el-col>
     </el-row>
 
@@ -121,8 +119,7 @@ export default {
       roomInfo: null,
       player: null,
       enemy: this.player,
-      showCardList: [],
-      hideCardList: [],
+      playCardList: [],
       currentStatus: 'show',// 当前状态show可以出明牌，hide可以出隐藏牌
 
       cardBodyStyle: {
@@ -259,19 +256,25 @@ export default {
      * @param index
      */
     selectCard(index, shadow){
-      if (!shadow && this.showCardList.length>=2){
+      if (!shadow && this.playCardList.length>=2){
+        let message = ''
+        if (this.currentStatus == 'show') {
+          message = '只能选择两张亮牌'
+        } else {
+          message = '只能选择两张暗牌'
+        }
         this.$message({
-          message: '只能选择两张亮牌',
+          message: message,
           type: "warning",
         });
         return shadow
       } else {
-        let index2 = this.showCardList.indexOf(index)
+        let index2 = this.playCardList.indexOf(index)
         if (index2 > -1) {
-          this.showCardList.splice(index2, 1)
+          this.playCardList.splice(index2, 1)
         }
         if (!shadow){
-          this.showCardList.push(index);
+          this.playCardList.push(index);
         }
         return !shadow
       }
@@ -280,10 +283,12 @@ export default {
      * 出牌
      */
     playCards(){
-      if (this.showCardList.length == 2 && this.currentStatus == 'show') {
-        this.sendDataToServer('SHOW#'+this.showCardList[0]+'#'+this.showCardList[1])
-      } else if (this.showCardList.length == 2 && this.currentStatus == 'hide') {
-        this.sendDataToServer('HIDE#'+this.showCardList[0]+'#'+this.showCardList[1])
+      if (this.playCardList.length == 2 && this.currentStatus == 'show') {
+        this.sendDataToServer('SHOW#'+this.playCardList[0]+'#'+this.playCardList[1])
+        this.playCardList = []
+      } else if (this.playCardList.length == 2 && this.currentStatus == 'hide') {
+        this.sendDataToServer('HIDE#'+this.playCardList[0]+'#'+this.playCardList[1])
+        this.playCardList = []
       }
     }
   },
