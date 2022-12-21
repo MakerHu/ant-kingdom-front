@@ -17,9 +17,9 @@
       </el-col>
       <el-col :span="4" style="background-color: orange">
         <div>
-          {{ roomMsg.name }}: {{ roomMsg.id }}
+          {{ roomMsg?roomMsg.name:'' }}: {{ roomMsg?roomMsg.id:'' }}
         </div>
-        <el-button  @click="startGame()">开始</el-button>
+        <el-button :disabled="ready" @click="readyGame()">{{ ready | readyBtn }}</el-button>
       </el-col>
     </el-row>
 
@@ -85,10 +85,10 @@
       </el-col>
       <el-col :span="16" style="background-color: gray">
         <el-row style="height: 100%;" :gutter="5">
-          <el-col :span="3" v-for="o in 8" :key="o" class="loc-center">
+          <el-col :span="3" v-for="(idleCard,index) in player?player.idleCardList:[]" :key="index" class="loc-center">
             <el-card class="box-card">
-              <div v-for="o in 4" :key="o">
-                {{'列表内容 ' + o }}
+              <div>
+                {{'卡名' + idleCard?idleCard.name:'' }}
               </div>
             </el-card>
           </el-col>
@@ -116,8 +116,16 @@ export default {
       wsTimer: null,
       // 用户
       user: null,
-      roomMsg: null
+      roomMsg: null,
+      ready: false,
+      roomInfo: null,
+      player: null,
     };
+  },
+  filters: {
+    readyBtn(value) {
+      return value ? '已准备':'准备'
+    }
   },
   methods: {
 
@@ -161,12 +169,24 @@ export default {
     },
     wsOpenHanler(event) {
       console.log('ws建立连接成功')
+      this.sendDataToServer('ENTER#'+this.roomMsg.id)
     },
     wsMessageHanler(e) {
       console.log('wsMessageHanler')
       console.log(e)
-      //const redata = JSON.parse(e.data)
+      const redata = JSON.parse(e.data)
       //console.log(redata)
+
+      switch (redata.msg) {
+        case 'MSG':
+          console.log(redata.data)
+          break
+        case 'REFRESH':
+          debugger
+          this.roomInfo = redata.data
+          this.refreshByRoomInfo();
+          break
+      }
     },
     /**
      * ws通信发生错误
@@ -198,10 +218,22 @@ export default {
     },
 
     /**
-     * 开始游戏
+     * 准备游戏
      */
-    startGame(){
-      this.sendDataToServer('ENTER#'+this.roomMsg.id)
+    readyGame(){
+      this.ready = !this.ready
+      this.sendDataToServer('READY')
+    },
+    /**
+     * 根据RoomInfo更新数据
+     */
+    refreshByRoomInfo(){
+      this.roomInfo.players.forEach((item) => {
+        if (item.user.uid == this.user.uid) {
+          this.player = item
+        }
+      })
+
     }
   },
   async mounted() {

@@ -5,7 +5,7 @@
     <el-button @click="refreshRoomList">刷新</el-button>
 
     <div class="room-card-panel loc-center">
-      <el-card class="room-card" v-for="room in roomList" :key="o" :body-style="{ padding: '0px' }">
+      <el-card class="room-card" v-for="(room,index) in roomList" :key="index" :body-style="{ padding: '0px' }">
 <!--        <img style="width: 100%" src="https://shadow.elemecdn.com/app/element/hamburger.9cf7b091-55e9-11e9-a976-7f4d0b07eef6.png" class="image">-->
         <el-image
             style="width: 100%"
