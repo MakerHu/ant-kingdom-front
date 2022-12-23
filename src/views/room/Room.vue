@@ -1,47 +1,49 @@
 <template>
-  <div class="room-content">
+  <div class="room-content" :style="roomBackground">
     <el-row class="row-one">
-      <el-col class="loc-center" :span="4" style="background-color: orange">
-        <div>
-          <el-avatar v-if="enemy&&enemy.user" style="height: 80px;width: 80px" src="https://cube.elemecdn.com/0/88/03b0d39583f48206768a7534e55bcpng.png"></el-avatar>
-          <div>{{ enemy&&enemy.user ? enemy.user.uname:'' }}</div>
+      <el-col :span="4">
+        <div class="loc-center" style="width: 100%;height: 30%">
+          <div style="position: relative;width: 50%;height: 100%;">
+            <img src="../../assets/doorplate.png" alt="" width="100%" height="100%" style="position: absolute; top: 0; left: 0;">
+            <span class="loc-center" style="position: absolute; top: 0; left: 0;width: 100%;height: 100%">{{ roomMsg?roomMsg.name:'' }}</span>
+          </div>
         </div>
+        <el-button :disabled="ready" @click="readyGame()">{{ ready | readyBtn }}</el-button>
       </el-col>
-      <el-col :span="16" style="background-color: gray">
-        <el-row style="height: 100%;" :gutter="5">
-          <el-col :span="3" v-for="(idleCard,index) in enemy?enemy.idleCardList:[]" :key="'key1'+index" class="loc-center">
-            <el-card class="box-card loc-center" :body-style="{ padding: '0px' }">
+
+      <el-col :span="16" >
+        <el-row style="height: 100%;" :gutter="5" type="flex" justify="end">
+          <el-col class="loc-center" :span="3" v-for="(idleCard,index) in enemy?enemy.idleCardList:[]" :key="'key1'+index">
+            <el-card class="box-card loc-center card-back" :body-style="{ padding: '0px'}">
               <img src="../../assets/ant.png" alt="蚂蚁" height="50">
             </el-card>
           </el-col>
         </el-row>
       </el-col>
-      <el-col :span="4" style="background-color: orange">
+
+      <el-col class="loc-center" :span="4">
         <div>
-          {{ roomMsg?roomMsg.name:'' }}: {{ roomMsg?roomMsg.id:'' }}
+          <el-avatar v-if="enemy&&enemy.user" style="height: 80px;width: 80px" src="https://cube.elemecdn.com/0/88/03b0d39583f48206768a7534e55bcpng.png"></el-avatar>
+          <div>{{ enemy&&enemy.user ? enemy.user.uname:'' }}</div>
         </div>
-        <el-button :disabled="ready" @click="readyGame()">{{ ready | readyBtn }}</el-button>
       </el-col>
     </el-row>
 
     <el-row class="row-two">
-      <el-col :span="6" class="loc-center" style="background-color: gray">
-        <el-card>
-          <div slot="header" class="loc-center">
-            <span>计分板</span>
-          </div>
-          <div>
-            {{ enemy&&enemy.user ? enemy.user.uname:'' }}:{{ enemy ? enemy.score:'' }}
-          </div>
-          <div>
-            {{ player&&player.user ? player.user.uname:'' }}:{{ player ? player.score:'' }}
-          </div>
-        </el-card>
+      <el-col :span="8" class="loc-center" >
+        <div style="position: relative;width: 40%;">
+          <img src="../../assets/whiteboard.svg" alt="" width="100%" height="100%">
+          <span style="position: absolute; top: 10px; left: calc(50% - 2em);">本回战况</span>
+          <span style="position: absolute; top: calc(20px + 1em); right: calc(50%);">{{ enemy&&enemy.user ? enemy.user.uname:'' }}:</span>
+          <span style="position: absolute; top: calc(20px + 1em); left: calc(50%);">{{ enemy ? enemy.score:'' }}</span>
+          <span style="position: absolute; top: calc(25px + 2em); right: calc(50%);">{{ player&&player.user ? player.user.uname:'' }}:</span>
+          <span style="position: absolute; top: calc(25px + 2em); left: calc(50%);">{{ player ? player.score:'' }}</span>
+        </div>
       </el-col>
-      <el-col :span="12" style="background-color: orange">
-        <el-row class="center-row" :gutter="5" style="background-color: chartreuse">
+      <el-col :span="8">
+        <el-row class="center-row" :gutter="5">
           <el-col :span="6" v-for="(showCard,index) in enemy? enemy.showCardList:[]" :key="'key2'+index" class="loc-center">
-            <el-card class="box-card loc-center" :body-style="{ padding: '0px' }">
+            <el-card :class="showBright?'box-card loc-center card-front':'box-card loc-center card-back'" :body-style="{ padding: '0px' }">
               <img v-if="!showBright" src="../../assets/ant.png" alt="蚂蚁" height="50">
               <div v-else>
                 <div><span>卡名：</span><span>{{ showCard.name }}</span></div>
@@ -51,7 +53,7 @@
             </el-card>
           </el-col>
           <el-col :span="6" v-for="(showCard,index) in enemy? enemy.hideCardList:[]" :key="'key3'+index" class="loc-center">
-            <el-card class="box-card loc-center" :body-style="{ padding: '0px' }">
+            <el-card :class="showHide?'box-card loc-center card-front':'box-card loc-center card-back'" :body-style="{ padding: '0px' }">
               <img v-if="!showHide" src="../../assets/ant.png" alt="蚂蚁" height="50">
               <div v-else>
                 <div><span>卡名：</span><span>{{ showCard.name }}</span></div>
@@ -61,23 +63,31 @@
             </el-card>
           </el-col>
         </el-row>
-        <el-row class="center-row-two" :gutter="5" style="background-color: aqua">
+        <el-row class="center-row-two" :gutter="5">
           <el-col :span="24" class="loc-center">
-            <el-card style="width:20%;height: 90%" :body-style="{ padding: '0px' }">
-              <div>
-                <span>环境：</span>
-                <span>{{ roomInfo && roomInfo.environmentCard ? roomInfo.environmentCard.name:'' }}</span>
+            <div v-if="roomInfo && roomInfo.environmentCard" style="position: relative;height: 100%;">
+              <img v-if="roomInfo && roomInfo.environmentCard && roomInfo.environmentCard.name == '森林'" src="../../assets/forest1.png" alt="森林" height="100%">
+              <img v-if="roomInfo && roomInfo.environmentCard && roomInfo.environmentCard.name == '沙漠'" src="../../assets/desert.png" alt="沙漠" height="100%">
+              <img v-if="roomInfo && roomInfo.environmentCard && roomInfo.environmentCard.name == '草原'" src="../../assets/grassland.png" alt="草原" height="100%">
+              <div style="position: absolute; top: 3px; left: 5px;color: white;border-radius: 3px;background-color: orange;font-size: small;padding: 1px;min-width: 1em">
+                {{ roomInfo ? roomInfo.environmentRice:'' }}
               </div>
-              <div>
-                <span>消耗：</span>
-                <span>{{ roomInfo ? roomInfo.environmentRice:'' }}米</span>
-              </div>
-            </el-card>
+            </div>
+<!--            <el-card style="width:20%;height: 90%" :body-style="{ padding: '0px' }">-->
+<!--              <div>-->
+<!--                <span>环境：</span>-->
+<!--                <span>{{ roomInfo && roomInfo.environmentCard ? roomInfo.environmentCard.name:'' }}</span>-->
+<!--              </div>-->
+<!--              <div>-->
+<!--                <span>消耗：</span>-->
+<!--                <span>{{ roomInfo ? roomInfo.environmentRice:'' }}米</span>-->
+<!--              </div>-->
+<!--            </el-card>-->
           </el-col>
         </el-row>
-        <el-row class="center-row" :gutter="5" style="background-color: chartreuse">
+        <el-row class="center-row" :gutter="5">
           <el-col :span="6" v-for="(showCard,index) in player? player.showCardList:[]" :key="'key4'+index" class="loc-center">
-            <el-card class="box-card loc-center" :body-style="{ padding: '0px' }">
+            <el-card :class="showBright?'box-card loc-center card-front':'box-card loc-center card-back'" :body-style="{ padding: '0px' }">
               <img v-if="!showBright" src="../../assets/ant.png" alt="蚂蚁" height="50">
               <div v-else>
                 <div><span>卡名：</span><span>{{ showCard.name }}</span></div>
@@ -87,7 +97,7 @@
             </el-card>
           </el-col>
           <el-col :span="6" v-for="(showCard,index) in player? player.hideCardList:[]" :key="'key5'+index" class="loc-center">
-            <el-card class="box-card loc-center" :body-style="{ padding: '0px' }">
+            <el-card :class="showHide?'box-card loc-center card-front':'box-card loc-center card-back'" :body-style="{ padding: '0px' }">
               <img v-if="!showHide" src="../../assets/ant.png" alt="蚂蚁" height="50">
               <div v-else>
                 <div><span>卡名：</span><span>{{ showCard.name }}</span></div>
@@ -98,7 +108,7 @@
           </el-col>
         </el-row>
       </el-col>
-      <el-col :span="6" class="loc-center" style="background-color: gray">
+      <el-col :span="8" class="loc-center" >
         <img src="../../assets/forest.png" alt="野外" height="200" @click="drawCard()">
         <el-button v-show="this.playCardList.length == 2 && (this.currentStatus == 'show' || this.currentStatus == 'hide')" @click="playCards()">出牌</el-button>
         <el-button v-show="showEndBtn" :disabled="endBtnDisable" @click="endThisRound()">结束本回合</el-button>
@@ -107,17 +117,17 @@
     </el-row>
 
     <el-row class="row-one">
-      <el-col class="loc-center" :span="4" style="background-color: orange">
-        <el-card>
-          <div>粮仓</div>
-          <div>{{ player ? player.rice:'' }}</div>
-        </el-card>
-        <span v-if="showChangeRice" style="margin-left: 5px">{{ (player&&player.changeRice>=0)? '+':'' }}{{ player? player.changeRice:'' }}</span>
+      <el-col class="loc-center" :span="4">
+        <div>
+          <el-avatar style="height: 80px;width: 80px" src="https://cube.elemecdn.com/0/88/03b0d39583f48206768a7534e55bcpng.png"></el-avatar>
+          <div>{{ player? player.user.uname:'' }}</div>
+        </div>
       </el-col>
+
       <el-col :span="16">
         <el-row style="height: 100%;" :gutter="5">
           <el-col :span="3" v-for="(idleCard,index) in player?player.idleCardList:[]" :key="'key6'+index" class="loc-center">
-            <el-card :class="idleCard.shadow?'selected-card':'box-card'" :shadow="idleCard.shadow? 'always':'never'" :body-style="cardBodyStyle" @click.native="idleCard.shadow = selectCard(index, idleCard.shadow)">
+            <el-card :class="idleCard.shadow?'selected-card':'box-card card-front'" :shadow="idleCard.shadow? 'always':'never'" :body-style="cardBodyStyle" @click.native="idleCard.shadow = selectCard(index, idleCard.shadow)">
               <div>
                 <div><span>卡名：</span><span>{{ idleCard.name }}</span></div>
                 <div><span>消耗米粒：</span><span>{{ idleCard.rice }}</span></div>
@@ -127,10 +137,12 @@
           </el-col>
         </el-row>
       </el-col>
-      <el-col class="loc-center" :span="4" style="background-color: orange">
-        <div>
-          <el-avatar style="height: 80px;width: 80px" src="https://cube.elemecdn.com/0/88/03b0d39583f48206768a7534e55bcpng.png"></el-avatar>
-          <div>{{ player? player.user.uname:'' }}</div>
+
+      <el-col class="loc-center" :span="4">
+        <div style="position: relative;width: 100%;height: 100%">
+          <img src="../../assets/rice.png" alt="" width="100%" height="100%">
+          <span style="position: absolute; bottom: 25%; right: calc(30% - 2em);font-size: large;">{{ player ? player.rice+'米':'' }}</span>
+          <span v-if="showChangeRice" style="position: absolute; top: 20%; right: 15%;font-size: large;">{{ (player&&player.changeRice>=0)? '+':'' }}{{ player? player.changeRice:'' }}</span>
         </div>
       </el-col>
     </el-row>
@@ -205,7 +217,10 @@ export default {
       //游戏结束弹窗
       gameOverDialogVisible: false,
 
-
+      roomBackground: {
+        backgroundImage:"url(" + require("../../assets/img.png") + ")",
+        backgroundSize: "100% 100%"
+      },
       cardBodyStyle: {
         padding: '5px',
         textAlign: 'left'
@@ -577,6 +592,15 @@ export default {
   height: 90%;
   width: 100%;
   font-size: small;
-  background-color: aqua;
+  /*background-color: aqua;*/
+  background-image: linear-gradient(135deg, #fdfcfb 0%, #e2d1c3 100%);
+}
+
+.card-back {
+  background-image: linear-gradient(-20deg, #616161 0%, #9bc5c3 100%);
+}
+
+.card-front {
+  background-image: linear-gradient(120deg, #fdfbfb 0%, #ebedee 100%);
 }
 </style>
