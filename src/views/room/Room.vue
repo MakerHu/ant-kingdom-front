@@ -81,7 +81,7 @@
         </el-row>
         <el-row class="center-row" :gutter="5">
           <el-col :span="6" v-for="(showCard,index) in player? player.showCardList:[]" :key="'key4'+index" class="loc-center">
-            <el-card :class="showBright?'box-card card-front':'box-card card-back'" :body-style="cardBodyStyle">
+            <el-card :class="showBright?'box-card card-front':'box-card loc-center card-back'" :body-style="cardBodyStyle">
               <img v-if="!showBright" src="../../assets/ant.png" alt="蚂蚁" height="50">
               <div v-else>
                 <div class="loc-center"><strong style="font-size: medium;">{{ showCard.name }}</strong></div>
@@ -92,7 +92,7 @@
             </el-card>
           </el-col>
           <el-col :span="6" v-for="(showCard,index) in player? player.hideCardList:[]" :key="'key5'+index" class="loc-center">
-            <el-card :class="showHide?'box-card card-front':'box-card card-back'" :body-style="cardBodyStyle">
+            <el-card :class="showHide?'box-card card-front':'box-card loc-center card-back'" :body-style="cardBodyStyle">
               <img v-if="!showHide" src="../../assets/ant.png" alt="蚂蚁" height="50">
               <div v-else>
                 <div class="loc-center"><strong style="font-size: medium;">{{ showCard.name }}</strong></div>
