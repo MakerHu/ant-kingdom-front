@@ -1,15 +1,17 @@
 <template>
-  <div>
+  <div style="margin-top: 30px">
+    <img class="shadow" src="../../assets/ant_kingdom.png" alt="蚂蚁星球" width="30%">
     <h2>欢迎{{ user.uname }}！您的 uid 为{{ user.uid }}</h2>
     <el-button @click="logout"> 登出 </el-button>
+    <el-button @click="createRoomDialogVisible = true">创建房间</el-button>
     <el-button @click="refreshRoomList">刷新</el-button>
 
     <div class="room-card-panel loc-center">
-      <el-card class="room-card" v-for="(room,index) in roomList" :key="index" :body-style="{ padding: '0px' }">
+      <el-card class="room-card" shadow="hover" v-for="(room,index) in roomList" :key="index" :body-style="{ padding: '0px' }">
 <!--        <img style="width: 100%" src="https://shadow.elemecdn.com/app/element/hamburger.9cf7b091-55e9-11e9-a976-7f4d0b07eef6.png" class="image">-->
         <el-image
             style="width: 100%"
-            :src="'https://shadow.elemecdn.com/app/element/hamburger.9cf7b091-55e9-11e9-a976-7f4d0b07eef6.png'"
+            :src="require('../../assets/room5.jpg')"
             :fit="'fit'"></el-image>
         <div style="padding: 14px;">
           <span>{{ room.name }}</span><br>
@@ -22,11 +24,25 @@
       </el-card>
     </div>
 
+    <el-dialog
+        title="创建房间"
+        :visible.sync="createRoomDialogVisible"
+        width="30%">
+      <el-form label-position="right" label-width="80px" :model="createForm">
+        <el-form-item label="名称">
+          <el-input v-model="createForm.roomName"></el-input>
+        </el-form-item>
+      </el-form>
+      <span slot="footer" class="dialog-footer">
+        <el-button @click="createRoomDialogVisible = false">取 消</el-button>
+        <el-button type="primary" @click="handleCreateRoom">确 定</el-button>
+      </span>
+    </el-dialog>
   </div>
 </template>
 
 <script>
-import {getRoomList} from "../../api/request";
+import {getRoomList,createRoom} from "../../api/request";
 
 export default {
   components: {
@@ -37,7 +53,11 @@ export default {
         uname: "",
         uid: null,
       },
-      roomList: []
+      roomList: [],
+      createRoomDialogVisible: false,
+      createForm: {
+        roomName: ''
+      }
     };
   },
   methods: {
@@ -54,6 +74,17 @@ export default {
       getRoomList()
       .then(res=>{
         this.roomList = res.data
+      })
+    },
+    handleCreateRoom(){
+      this.createRoomDialogVisible = false
+      createRoom(this.createForm.roomName)
+      .then(res => {
+        this.$message({
+          message: '房间创建成功',
+          type: "success",
+        });
+        this.refreshRoomList()
       })
     }
   },
@@ -113,5 +144,9 @@ export default {
   align-items: center;
   justify-content: center;
   display: flex;
+}
+
+.shadow {
+  filter: drop-shadow(2px 3px 8px #ffffff);
 }
 </style>

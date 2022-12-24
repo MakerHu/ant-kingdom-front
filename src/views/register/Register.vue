@@ -1,6 +1,7 @@
 <template>
-  <div>
-    <el-card class="box-card">
+  <div style="margin-top: 30px">
+    <img class="shadow" src="../../assets/ant_kingdom.png" alt="蚂蚁星球" width="30%">
+    <el-card class="box-card" style="margin-top: 30px" shadow="hover">
       <h2>注册</h2>
       <el-form
         :model="ruleForm"
@@ -140,5 +141,8 @@ export default {
 /* 设置登录面板中的表单居中 */
 .login-from {
   margin: auto auto;
+}
+.shadow {
+  filter: drop-shadow(2px 3px 8px #ffffff);
 }
 </style>

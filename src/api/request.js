@@ -24,3 +24,12 @@ export function getRoomList() {
         method: 'post'
     })
 }
+
+
+export function createRoom(roomName) {
+    return Service({
+        url: '/api/room/addRoom',
+        method: 'post',
+        params: { roomName: roomName }
+    })
+}
