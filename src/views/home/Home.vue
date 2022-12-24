@@ -1,5 +1,11 @@
 <template>
   <div style="margin-top: 30px">
+    <div class="loc-center" @click="gameBgDialogVisible=true" style="width: 40px;height: 40px;position: absolute; top: 30px; right: 30px;cursor: pointer;">
+      <div style="position: relative;width: 100%;height: 100%;">
+        <img class="shadow" src="../../assets/doorplate.png" alt="" width="100%" height="100%" style="position: absolute; top: 0; left: 0;">
+        <span class="loc-center" style="position: absolute; top: 0; left: 0;width: 100%;height: 100%;color: white;font-size: x-large">?</span>
+      </div>
+    </div>
     <img class="shadow" src="../../assets/ant_kingdom.png" alt="蚂蚁星球" width="30%">
     <h2>欢迎{{ user.uname }}！您的 uid 为{{ user.uid }}</h2>
     <el-button @click="logout"> 登出 </el-button>
@@ -38,10 +44,18 @@
         <el-button type="primary" @click="handleCreateRoom">确 定</el-button>
       </span>
     </el-dialog>
+
+    <el-dialog
+        title="游戏背景"
+        :visible.sync="gameBgDialogVisible"
+        width="50%">
+      <div v-html="gameBackground" style="text-align:left;"></div>
+    </el-dialog>
   </div>
 </template>
 
 <script>
+import axios from 'axios'
 import {getRoomList,createRoom} from "../../api/request";
 
 export default {
@@ -55,6 +69,8 @@ export default {
       },
       roomList: [],
       createRoomDialogVisible: false,
+      gameBgDialogVisible: false,
+      gameBackground: '',
       createForm: {
         roomName: ''
       }
@@ -86,6 +102,11 @@ export default {
         });
         this.refreshRoomList()
       })
+    },
+    readFile() {
+      axios.get('/gameBackground.txt').then((data)=>{
+        this.gameBackground = data.data
+      })
     }
   },
   mounted() {
@@ -98,6 +119,8 @@ export default {
     .then(res=>{
       this.roomList = res.data
     })
+
+    this.readFile()
   },
   filters: {
     status(value) {
