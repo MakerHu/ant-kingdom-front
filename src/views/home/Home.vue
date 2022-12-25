@@ -7,7 +7,7 @@
       </div>
     </div>
     <img class="shadow" src="../../assets/ant_kingdom.png" alt="蚂蚁星球" width="30%">
-    <h2>欢迎{{ user.uname }}！您的 uid 为{{ user.uid }}</h2>
+    <h2>欢迎{{ user.uname }}！</h2>
     <el-button @click="logout"> 登出 </el-button>
     <el-button @click="createRoomDialogVisible = true">创建房间</el-button>
     <el-button @click="refreshRoomList">刷新</el-button>
