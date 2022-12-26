@@ -140,8 +140,14 @@
       <el-col class="loc-center" :span="4">
         <div style="position: relative;width: 100%;height: 100%">
           <img class="shadow" src="../../assets/rice.png" alt="" width="100%" height="100%">
-          <span style="position: absolute; bottom: 25%; right: calc(30% - 2em);font-size: large;">{{ player ? player.rice+'米':'' }}</span>
-          <span v-if="showChangeRice" style="position: absolute; top: 20%; right: 15%;font-size: large;color: white">{{ (player&&player.changeRice>=0)? '+':'' }}{{ player? player.changeRice:'' }}</span>
+          <span style="position: absolute; bottom: 25%; right: calc(28% - 2em);font-size: large;">{{ player ? player.rice+'米':'' }}</span>
+<!--          <span v-if="showChangeRice" style="position: absolute; top: 20%; right: 15%;font-size: large;color: white">{{ (player&&player.changeRice>=0)? '+':'' }}{{ player? player.changeRice:'' }}12</span>-->
+          <transition name="fade">
+            <span v-if="showChangeRice" style="position: absolute; top: 10%; right: 15%;font-size: large;color: white;border-radius: 15px;background-color: #1fd082;padding: 5px">
+              {{ (player&&player.changeRice>=0)? '+':'' }}{{ player? player.changeRice:'' }}
+            </span>
+          </transition>
+
         </div>
       </el-col>
     </el-row>
@@ -193,7 +199,7 @@ export default {
       enemy: null,
       winner: null,
 
-      playCardList: [],
+      playCardList: [], // 选中的牌
       currentStatus: 'show',// 当前状态show可以出明牌，hide可以出隐藏牌，end一回合结束
       showBright: false,
       showHide: false,
@@ -255,8 +261,8 @@ export default {
       // ws连接建立时触发
       this.webSocket.addEventListener('open', this.wsOpenHanler)
       // ws服务端给客户端推送消息
-      this.webSocket.addEventListener('message', this.wsMessageHanler)
       // ws通信发生错误时触发
+      this.webSocket.addEventListener('message', this.wsMessageHanler)
       this.webSocket.addEventListener('error', this.wsErrorHanler)
       // ws关闭时触发
       this.webSocket.addEventListener('close', this.wsCloseHanler)
@@ -286,24 +292,24 @@ export default {
         case 'MSG':
           console.log(redata.data)
           break
-        case 'ALERT':
+        case 'ALERT': // 警告信息
           this.$message({
             message: redata.data,
             type: "warning",
           });
           break
-        case 'CONTINUE_ALERT':
+        case 'CONTINUE_ALERT': // 无法继续时
           this.nextRoundBtnDisable = false
           this.$message({
             message: redata.data,
             type: "warning",
           });
           break
-        case 'REFRESH':
+        case 'REFRESH': // 刷新牌局
           this.roomInfo = redata.data
           this.refreshByRoomInfo();
           break
-        case 'START':
+        case 'START': // 开始
           this.roomInfo = redata.data
           this.refreshByRoomInfo();
           this.roundInit()
@@ -313,14 +319,14 @@ export default {
             offset: 150
           });
           break
-        case 'SHOW_OUT':
+        case 'SHOW_OUT': // 第一阶段出牌结束
           this.roomInfo = redata.data
           this.refreshByRoomInfo();
           this.currentStatus = 'hide'
           this.showBright = true
           this.canPlayCard = true
           break
-        case 'HIDE_OUT':
+        case 'HIDE_OUT':  // 第二阶段出牌结束
           this.roomInfo = redata.data
           this.refreshByRoomInfo();
           this.showHide = true
@@ -329,7 +335,7 @@ export default {
             message: '你可以选择修改环境或结束本回合'
           });
           break
-        case 'END_OUT':
+        case 'END_OUT':  // 回合结束
           this.roomInfo = redata.data
           this.refreshByRoomInfo()
           this.currentStatus = 'end'
@@ -340,11 +346,10 @@ export default {
             this.showChangeRice = false
           },5000)
           break
-        case 'GAME_OVER':
+        case 'GAME_OVER': // 游戏结束
           this.roomInfo = redata.data
           this.refreshByRoomInfo()
           this.roomInfo.players.forEach((player)=>{
-            debugger
             if (!player.bankruptcy) {
               this.winner = player
             }
@@ -400,6 +405,11 @@ export default {
             this.player.idleCardList.forEach((card) => {
               this.$set(card, 'shadow', false)
             })
+            if (this.playCardList.length > 0) {
+              for (let i=0;i<this.playCardList.length;i++){
+                this.player.idleCardList[this.playCardList[i]].shadow = true
+              }
+            }
           }
         } else {
           this.enemy = item
