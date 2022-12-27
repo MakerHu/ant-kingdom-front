@@ -125,7 +125,7 @@
         </el-row>
       </el-col>
       <el-col :span="8" class="loc-center" >
-        <el-tooltip effect="light" content="回合结束点我，用粮食补充兵力" placement="top">
+        <el-tooltip effect="light" content="双方回合结束点我，用粮食补充兵力" placement="top">
           <img class="shadow" src="../../assets/ant1.png" alt="野外" height="40%" @click="drawCard()" style="cursor: pointer;">
         </el-tooltip>
 <!--        <el-button v-show="this.playCardList.length == 2 && (this.currentStatus == 'show' || this.currentStatus == 'hide')" @click="playCards()">出牌</el-button>-->
