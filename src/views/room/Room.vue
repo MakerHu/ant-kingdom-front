@@ -3,10 +3,14 @@
     <el-row class="row-one">
       <el-col :span="4">
         <div class="loc-center" style="width: 100%;height: 30%;margin-top: 20px">
-          <img class="shadow" @click="quit()" src="../../assets/quit.svg" alt="" height="60%" style="cursor: pointer;margin-right: 10px">
+          <img class="shadow" @click="quit()" src="../../assets/quit.svg" alt="" height="40%" style="cursor: pointer;margin-right: 10px">
           <div style="position: relative;width: 50%;height: 100%;">
             <img class="shadow" src="../../assets/doorplate.png" alt="" width="100%" height="100%" style="position: absolute; top: 0; left: 0;">
-            <span class="loc-center" style="position: absolute; top: 0; left: 0;width: 100%;height: 100%;color: white">{{ roomMsg?roomMsg.name:'' }}</span>
+            <el-tooltip class="item" effect="light" :content="roomMsg?roomMsg.name:''" placement="bottom">
+              <div style="position: absolute; top: 50%; left: 50%;transform: translate(-50%, -50%);color: white;text-overflow: ellipsis;white-space: nowrap;overflow: hidden;width: 75%;">
+                {{ roomMsg?roomMsg.id:'' }}<br>{{ roomMsg?roomMsg.name:'' }}
+              </div>
+            </el-tooltip>
           </div>
         </div>
       </el-col>
@@ -135,14 +139,20 @@
         </transition>
         <transition name = "fade">
           <div v-if="showEndBtn" @click="endThisRound()" style="position: relative;height: 50px; width: 120px;cursor: pointer;">
-            <img class="shadow" src="../../assets/button.png" alt="出牌" width="100%" height="100%" style="position: absolute; left: 50%; top: 50%;transform: translate(-50%, -50%);">
+            <img class="shadow" src="../../assets/button.png" alt="结束本回合" width="100%" height="100%" style="position: absolute; left: 50%; top: 50%;transform: translate(-50%, -50%);">
             <div style="position: absolute; left: 50%; top: 50%;transform: translate(-50%, -50%);width: 100%;color: white;font-size: larger">结束本回合</div>
           </div>
         </transition>
         <transition name = "fade">
           <div v-if="showNextRound" @click="nextRound()" style="position: relative;height: 50px; width: 80px;cursor: pointer;">
-            <img class="shadow" src="../../assets/button.png" alt="出牌" width="100%" height="100%" style="position: absolute; left: 50%; top: 50%;transform: translate(-50%, -50%);">
+            <img class="shadow" src="../../assets/button.png" alt="继续" width="100%" height="100%" style="position: absolute; left: 50%; top: 50%;transform: translate(-50%, -50%);">
             <div style="position: absolute; left: 50%; top: 50%;transform: translate(-50%, -50%);width: 100%;color: white;font-size: larger">继续</div>
+          </div>
+        </transition>
+        <transition name = "fade">
+          <div v-if="showRestartBtn" @click="readyGame()" style="position: relative;height: 50px; width: 120px;cursor: pointer;">
+            <img class="shadow" src="../../assets/button.png" alt="再来一局" width="100%" height="100%" style="position: absolute; left: 50%; top: 50%;transform: translate(-50%, -50%);">
+            <div style="position: absolute; left: 50%; top: 50%;transform: translate(-50%, -50%);width: 100%;color: white;font-size: larger">{{ ready | restartBtn }}</div>
           </div>
         </transition>
       </el-col>
@@ -180,7 +190,6 @@
               {{ (player&&player.changeRice>=0)? '+':'' }}{{ player? player.changeRice:'' }}
             </span>
           </transition>
-
         </div>
       </el-col>
     </el-row>
@@ -189,7 +198,7 @@
         title="确认"
         :visible.sync="drawCardDialogVisible"
         width="30%">
-      <span>是否确定花5米兑换一张手牌？</span>
+      <span>是否确定花50米兑换一张手牌？</span>
       <span slot="footer" class="dialog-footer">
         <el-button @click="drawCardDialogVisible = false">取 消</el-button>
         <el-button type="primary" @click="confirmDrawCard">确 定</el-button>
@@ -253,6 +262,9 @@ export default {
       showNextRound: false,
       nextRoundBtnDisable: false,
 
+      //重新开始按钮
+      showRestartBtn: false,
+
       //抽卡弹窗
       drawCardDialogVisible: false,
 
@@ -275,6 +287,9 @@ export default {
   filters: {
     readyBtn(value) {
       return value ? '取消准备':'准备'
+    },
+    restartBtn(value) {
+      return value ? '取消准备':'再来一局'
     }
   },
   methods: {
@@ -351,7 +366,6 @@ export default {
           this.refreshByRoomInfo();
           break
         case 'START': // 开始
-          this.showReadyBtn = false
           this.roomInfo = redata.data
           this.roundInit()
             let showMsg = '回合开始！'
@@ -401,7 +415,16 @@ export default {
             }
           })
           this.gameOverDialogVisible = true
+          this.showRestartBtn = true
+          this.showNextRound = false
           this.refreshByRoomInfo()
+          break
+        case 'CONN_ERR': // 连接异常
+          this.$message({
+            message: '服务器跟丢了。。。',
+            type: "warning",
+          });
+          this.quit()
           break
       }
     },
@@ -553,6 +576,10 @@ export default {
      * 回合初始化
      */
     roundInit(){
+      this.showReadyBtn = false
+      this.showRestartBtn = false
+      this.ready = false  //为下一局的开始做准备
+
       // this.playCardList = []
       this.currentStatus = 'show'// 当前状态show可以出明牌，hide可以出隐藏牌，end一回合结束
       this.showBright = false

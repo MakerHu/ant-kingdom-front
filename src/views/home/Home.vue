@@ -1,8 +1,8 @@
 <template>
   <div style="margin-top: 30px">
     <div class="loc-center" @click="gameBgDialogVisible=true" style="width: 40px;height: 40px;position: absolute; top: 30px; right: 30px;cursor: pointer;">
-      <div style="position: relative;width: 100%;height: 100%;">
-        <img class="shadow" src="../../assets/doorplate.png" alt="" width="100%" height="100%" style="position: absolute; top: 0; left: 0;">
+      <div class="card-shadow" style="position: relative;width: 100%;height: 100%;">
+        <img src="../../assets/doorplate.png" alt="" width="100%" height="100%" style="position: absolute; top: 0; left: 0;">
         <span class="loc-center" style="position: absolute; top: 0; left: 0;width: 100%;height: 100%;color: white;font-size: x-large">?</span>
       </div>
     </div>
@@ -13,21 +13,19 @@
     <el-button @click="refreshRoomList">刷新</el-button>
 
     <div class="room-card-panel loc-center">
-      <el-card class="room-card" shadow="hover" v-for="(room,index) in roomList" :key="index" :body-style="{ padding: '0px' }">
-<!--        <img style="width: 100%" src="https://shadow.elemecdn.com/app/element/hamburger.9cf7b091-55e9-11e9-a976-7f4d0b07eef6.png" class="image">-->
+      <div class="room-card card-shadow" v-for="(room,index) in roomList" @click="enterRoom(room)" :key="index">
         <el-image
-            style="width: 100%"
+            style="width: 100%;border-radius: 10px 10px 0 0px"
             :src="require('../../assets/room5.jpg')"
             :fit="'fit'"></el-image>
-        <div style="padding: 14px;">
+        <img class="shadow" v-if="room.status==0" src="../../assets/ready.svg" alt="" width="25%" style="position: absolute; top: 0; left: 0;">
+        <img class="shadow" v-if="room.status==1" src="../../assets/going.svg" alt="" width="25%" style="position: absolute; top: 0; left: 0;">
+        <div style="padding: 5px;">
           <span>{{ room.name }}</span><br>
           <span>房间号：{{ room.id }}</span>
           <span style="margin-left: 5px">状态: {{ room.status | status }}</span>
-          <div>
-            <el-button class="button" @click="enterRoom(room)">进入</el-button>
-          </div>
         </div>
-      </el-card>
+      </div>
     </div>
 
     <el-dialog
@@ -100,7 +98,8 @@ export default {
           message: '房间创建成功',
           type: "success",
         });
-        this.refreshRoomList()
+        this.enterRoom(res.data)
+        // this.refreshRoomList()
       })
     },
     readFile() {
@@ -152,9 +151,14 @@ export default {
 }
 
 .room-card-panel .room-card {
-  width: calc(20% - 30px);
+  width: calc(15% - 30px);
   margin-right: 10px;
   margin-bottom: 10px;
+  cursor: pointer;
+  /*background-color: white;*/
+  background-image: linear-gradient(120deg, #fdfbfb 0%, #ebedee 100%);
+  border-radius: 10px;
+  position: relative;
   /*display: flex;*/
   /*align-items: center;*/
 }
@@ -170,6 +174,14 @@ export default {
 }
 
 .shadow {
+  filter: drop-shadow(2px 3px 8px #ffffff);
+}
+
+.card-shadow {
+  filter: drop-shadow(2px 3px 8px #d5c7c7);
+}
+
+.card-shadow:hover {
   filter: drop-shadow(2px 3px 8px #ffffff);
 }
 </style>
