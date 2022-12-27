@@ -3,7 +3,7 @@
     <el-row class="row-one">
       <el-col :span="4">
         <div class="loc-center" style="width: 100%;height: 30%;margin-top: 20px">
-          <img class="shadow" @click="quit()" src="../../assets/quit.svg" alt="" height="80%" style="cursor: pointer;margin-right: 10px">
+          <img class="shadow" @click="quit()" src="../../assets/quit.svg" alt="" height="60%" style="cursor: pointer;margin-right: 10px">
           <div style="position: relative;width: 50%;height: 100%;">
             <img class="shadow" src="../../assets/doorplate.png" alt="" width="100%" height="100%" style="position: absolute; top: 0; left: 0;">
             <span class="loc-center" style="position: absolute; top: 0; left: 0;width: 100%;height: 100%;color: white">{{ roomMsg?roomMsg.name:'' }}</span>
@@ -22,9 +22,19 @@
       </el-col>
 
       <el-col class="loc-center" :span="4">
-        <div>
-          <img class="shadow" v-if="enemy&&enemy.user" width="30%" style="border-radius: 50%" alt="玩家2" src="../../assets/player2.jpg">
-          <div style="color: white">{{ enemy&&enemy.user ? enemy.user.uname:'' }}</div>
+        <div class="loc-center" style="position: relative;width: 100%;height: 100%;">
+          <div>
+            <img class="shadow" v-if="enemy&&enemy.user" width="30%" style="border-radius: 50%" alt="玩家2" src="../../assets/player2.jpg">
+            <div style="color: white;margin-bottom: 3px">{{ enemy&&enemy.user ? enemy.user.uname:'' }}</div>
+            <span class="shadow" v-if="enemy&&enemy.rice" style="color: #33312d;background-image: linear-gradient(120deg, #f6d365 0%, #fda085 100%);border-radius: 5px;padding: 2px;">
+              {{ enemy&&enemy.rice ? enemy.rice+'米':'' }}
+            </span>
+          </div>
+          <transition name="fade">
+            <span v-if="showChangeRice" style="position: absolute; bottom: 0; left: 50%;transform: translate(-50%, 5px);font-size: large;color: white;border-radius: 15px;background-color: #1fd082;padding: 5px">
+              {{ (enemy&&enemy.changeRice>=0)? '+':'' }}{{ enemy? enemy.changeRice:'' }}
+            </span>
+          </transition>
         </div>
       </el-col>
     </el-row>
@@ -67,10 +77,9 @@
         </el-row>
         <el-row class="center-row-two" :gutter="5">
           <el-col :span="24" class="loc-center">
-<!--            <el-button v-show="showReadyBtn" @click="readyGame()">{{ ready | readyBtn }}</el-button>-->
             <transition name = "fade">
               <div v-show="showReadyBtn" @click="readyGame()" style="position: relative;height: 50px; width: 120px;cursor: pointer;">
-                <img class="shadow" src="../../assets/start.png" alt="开始" width="100%" height="100%" style="position: absolute; left: 50%; top: 50%;transform: translate(-50%, -50%);">
+                <img class="shadow" src="../../assets/button.png" alt="开始" width="100%" height="100%" style="position: absolute; left: 50%; top: 50%;transform: translate(-50%, -50%);">
                 <div style="position: absolute; left: 50%; top: 50%;transform: translate(-50%, -50%);width: 100%;color: white;font-size: larger">{{ ready | readyBtn }}</div>
               </div>
             </transition>
@@ -115,9 +124,27 @@
         <el-tooltip effect="light" content="回合结束点我，用粮食补充兵力" placement="top">
           <img class="shadow" src="../../assets/ant1.png" alt="野外" height="40%" @click="drawCard()" style="cursor: pointer;">
         </el-tooltip>
-        <el-button v-show="this.playCardList.length == 2 && (this.currentStatus == 'show' || this.currentStatus == 'hide')" @click="playCards()">出牌</el-button>
-        <el-button v-show="showEndBtn" :disabled="endBtnDisable" @click="endThisRound()">结束本回合</el-button>
-        <el-button v-show="showNextRound" :disabled="nextRoundBtnDisable" @click="nextRound()">继续</el-button>
+<!--        <el-button v-show="this.playCardList.length == 2 && (this.currentStatus == 'show' || this.currentStatus == 'hide')" @click="playCards()">出牌</el-button>-->
+<!--        <el-button v-show="showEndBtn" :disabled="endBtnDisable" @click="endThisRound()">结束本回合</el-button>-->
+<!--        <el-button v-show="showNextRound" :disabled="nextRoundBtnDisable" @click="nextRound()">继续</el-button>-->
+        <transition name = "fade">
+          <div v-if="this.playCardList.length == 2 && (this.currentStatus == 'show' || this.currentStatus == 'hide')" @click="playCards()" style="position: relative;height: 50px; width: 80px;cursor: pointer;">
+            <img class="shadow" src="../../assets/button.png" alt="出牌" width="100%" height="100%" style="position: absolute; left: 50%; top: 50%;transform: translate(-50%, -50%);">
+            <div style="position: absolute; left: 50%; top: 50%;transform: translate(-50%, -50%);width: 100%;color: white;font-size: larger">出牌</div>
+          </div>
+        </transition>
+        <transition name = "fade">
+          <div v-if="showEndBtn" @click="endThisRound()" style="position: relative;height: 50px; width: 120px;cursor: pointer;">
+            <img class="shadow" src="../../assets/button.png" alt="出牌" width="100%" height="100%" style="position: absolute; left: 50%; top: 50%;transform: translate(-50%, -50%);">
+            <div style="position: absolute; left: 50%; top: 50%;transform: translate(-50%, -50%);width: 100%;color: white;font-size: larger">结束本回合</div>
+          </div>
+        </transition>
+        <transition name = "fade">
+          <div v-if="showNextRound" @click="nextRound()" style="position: relative;height: 50px; width: 80px;cursor: pointer;">
+            <img class="shadow" src="../../assets/button.png" alt="出牌" width="100%" height="100%" style="position: absolute; left: 50%; top: 50%;transform: translate(-50%, -50%);">
+            <div style="position: absolute; left: 50%; top: 50%;transform: translate(-50%, -50%);width: 100%;color: white;font-size: larger">继续</div>
+          </div>
+        </transition>
       </el-col>
     </el-row>
 
@@ -326,7 +353,6 @@ export default {
         case 'START': // 开始
           this.showReadyBtn = false
           this.roomInfo = redata.data
-          this.refreshByRoomInfo();
           this.roundInit()
             let showMsg = '回合开始！'
             if (!this.hasShownGameBegin) {
@@ -338,26 +364,26 @@ export default {
             showClose: false,
             offset: 150
           });
+          this.refreshByRoomInfo();
           break
         case 'SHOW_OUT': // 第一阶段出牌结束
           this.roomInfo = redata.data
-          this.refreshByRoomInfo();
           this.currentStatus = 'hide'
           this.showBright = true
           this.canPlayCard = true
+          this.refreshByRoomInfo();
           break
         case 'HIDE_OUT':  // 第二阶段出牌结束
           this.roomInfo = redata.data
-          this.refreshByRoomInfo();
           this.showHide = true
           this.showEndBtn = true
           this.$message({
             message: '你可以选择修改环境或结束本回合'
           });
+          this.refreshByRoomInfo();
           break
         case 'END_OUT':  // 回合结束
           this.roomInfo = redata.data
-          this.refreshByRoomInfo()
           this.currentStatus = 'end'
           this.showChangeRice = true
           this.showEndBtn = false
@@ -365,16 +391,17 @@ export default {
           setTimeout(()=>{
             this.showChangeRice = false
           },2000)
+          this.refreshByRoomInfo()
           break
         case 'GAME_OVER': // 游戏结束
           this.roomInfo = redata.data
-          this.refreshByRoomInfo()
           this.roomInfo.players.forEach((player)=>{
             if (!player.bankruptcy) {
               this.winner = player
             }
           })
           this.gameOverDialogVisible = true
+          this.refreshByRoomInfo()
           break
       }
     },
@@ -494,6 +521,7 @@ export default {
      */
     endThisRound(){
       this.endBtnDisable = true
+      this.showEndBtn = false
       this.sendDataToServer('END')
     },
     /**
@@ -501,6 +529,7 @@ export default {
      */
     nextRound(){
       this.nextRoundBtnDisable = true
+      this.showNextRound = false
       this.sendDataToServer('CONTINUE')
     },
     /**
@@ -524,7 +553,7 @@ export default {
      * 回合初始化
      */
     roundInit(){
-      this.playCardList = []
+      // this.playCardList = []
       this.currentStatus = 'show'// 当前状态show可以出明牌，hide可以出隐藏牌，end一回合结束
       this.showBright = false
       this.showHide = false
