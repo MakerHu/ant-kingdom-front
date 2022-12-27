@@ -3,12 +3,12 @@
     <el-row class="row-one">
       <el-col :span="4">
         <div class="loc-center" style="width: 100%;height: 30%;margin-top: 20px">
+          <img class="shadow" @click="quit()" src="../../assets/quit.svg" alt="" height="80%" style="cursor: pointer;margin-right: 10px">
           <div style="position: relative;width: 50%;height: 100%;">
             <img class="shadow" src="../../assets/doorplate.png" alt="" width="100%" height="100%" style="position: absolute; top: 0; left: 0;">
             <span class="loc-center" style="position: absolute; top: 0; left: 0;width: 100%;height: 100%;color: white">{{ roomMsg?roomMsg.name:'' }}</span>
           </div>
         </div>
-        <el-button :disabled="ready" @click="readyGame()">{{ ready | readyBtn }}</el-button>
       </el-col>
 
       <el-col :span="16" >
@@ -23,7 +23,7 @@
 
       <el-col class="loc-center" :span="4">
         <div>
-          <img class="shadow" v-if="enemy&&enemy.user" style="height: 80px;width: 80px;border-radius: 50%" alt="玩家1" src="../../assets/player2.jpg">
+          <img class="shadow" v-if="enemy&&enemy.user" width="30%" style="border-radius: 50%" alt="玩家2" src="../../assets/player2.jpg">
           <div style="color: white">{{ enemy&&enemy.user ? enemy.user.uname:'' }}</div>
         </div>
       </el-col>
@@ -67,6 +67,13 @@
         </el-row>
         <el-row class="center-row-two" :gutter="5">
           <el-col :span="24" class="loc-center">
+<!--            <el-button v-show="showReadyBtn" @click="readyGame()">{{ ready | readyBtn }}</el-button>-->
+            <transition name = "fade">
+              <div v-show="showReadyBtn" @click="readyGame()" style="position: relative;height: 50px; width: 120px;cursor: pointer;">
+                <img class="shadow" src="../../assets/start.png" alt="开始" width="100%" height="100%" style="position: absolute; left: 50%; top: 50%;transform: translate(-50%, -50%);">
+                <div style="position: absolute; left: 50%; top: 50%;transform: translate(-50%, -50%);width: 100%;color: white;font-size: larger">{{ ready | readyBtn }}</div>
+              </div>
+            </transition>
             <div v-if="roomInfo && roomInfo.environmentCard" style="position: relative;height: 100%;cursor: pointer;">
               <el-tooltip effect="light" content="点我可随时改造环境（待实现）" placement="top">
                 <img class="shadow" v-if="roomInfo && roomInfo.environmentCard && roomInfo.environmentCard.name == '森林'" src="../../assets/forest1.png" alt="森林" height="100%">
@@ -106,7 +113,7 @@
       </el-col>
       <el-col :span="8" class="loc-center" >
         <el-tooltip effect="light" content="回合结束点我，用粮食补充兵力" placement="top">
-          <img class="shadow" src="../../assets/ant1.png" alt="野外" height="200" @click="drawCard()" style="cursor: pointer;">
+          <img class="shadow" src="../../assets/ant1.png" alt="野外" height="40%" @click="drawCard()" style="cursor: pointer;">
         </el-tooltip>
         <el-button v-show="this.playCardList.length == 2 && (this.currentStatus == 'show' || this.currentStatus == 'hide')" @click="playCards()">出牌</el-button>
         <el-button v-show="showEndBtn" :disabled="endBtnDisable" @click="endThisRound()">结束本回合</el-button>
@@ -117,7 +124,7 @@
     <el-row class="row-one">
       <el-col class="loc-center" :span="4">
         <div>
-          <img class="shadow" v-if="player&&player.user" style="height: 80px;width: 80px;border-radius: 50%" alt="玩家1" src="../../assets/player1.jpg">
+          <img class="shadow" v-if="player&&player.user" width="30%" style="border-radius: 50%" alt="玩家1" src="../../assets/player1.jpg">
           <div style="color: white">{{ player? player.user.uname:'' }}</div>
         </div>
       </el-col>
@@ -141,7 +148,6 @@
         <div style="position: relative;width: 100%;height: 100%">
           <img class="shadow" src="../../assets/rice.png" alt="" width="100%" height="100%">
           <span style="position: absolute; bottom: 25%; right: calc(28% - 2em);font-size: large;">{{ player ? player.rice+'米':'' }}</span>
-<!--          <span v-if="showChangeRice" style="position: absolute; top: 20%; right: 15%;font-size: large;color: white">{{ (player&&player.changeRice>=0)? '+':'' }}{{ player? player.changeRice:'' }}12</span>-->
           <transition name="fade">
             <span v-if="showChangeRice" style="position: absolute; top: 10%; right: 15%;font-size: large;color: white;border-radius: 15px;background-color: #1fd082;padding: 5px">
               {{ (player&&player.changeRice>=0)? '+':'' }}{{ player? player.changeRice:'' }}
@@ -193,11 +199,15 @@ export default {
       // 用户
       user: null,
       roomMsg: null,
-      ready: false,
       roomInfo: null,
       player: null,
       enemy: null,
       winner: null,
+
+      // 准备按钮
+      ready: false,
+      showReadyBtn: true,
+      hasShownGameBegin: false,
 
       playCardList: [], // 选中的牌
       currentStatus: 'show',// 当前状态show可以出明牌，hide可以出隐藏牌，end一回合结束
@@ -224,7 +234,10 @@ export default {
 
       roomBackground: {
         backgroundImage:"url(" + require("../../assets/background2.png") + ")",
-        backgroundSize: "100% 100%"
+        backgroundSize: "100% 100%",
+        //隐藏滚动条
+        overflow: "hidden",
+        height: "100vh"
       },
       cardBodyStyle: {
         padding: '5px',
@@ -234,7 +247,7 @@ export default {
   },
   filters: {
     readyBtn(value) {
-      return value ? '已准备':'准备'
+      return value ? '取消准备':'准备'
     }
   },
   methods: {
@@ -242,6 +255,7 @@ export default {
     sendDataToServer(msg) {
       if (this.webSocket.readyState === 1) {
         this.webSocket.send(msg)
+        console.log('向服务器发送信息：', msg)
       } else {
         throw Error('服务未连接')
       }
@@ -310,11 +324,17 @@ export default {
           this.refreshByRoomInfo();
           break
         case 'START': // 开始
+          this.showReadyBtn = false
           this.roomInfo = redata.data
           this.refreshByRoomInfo();
           this.roundInit()
+            let showMsg = '回合开始！'
+            if (!this.hasShownGameBegin) {
+              this.hasShownGameBegin = !this.hasShownGameBegin
+              showMsg = '游戏开始！'
+            }
           this.$notify.success({
-            title: '回合开始！',
+            title: showMsg,
             showClose: false,
             offset: 150
           });
@@ -344,7 +364,7 @@ export default {
           this.showNextRound = true
           setTimeout(()=>{
             this.showChangeRice = false
-          },5000)
+          },2000)
           break
         case 'GAME_OVER': // 游戏结束
           this.roomInfo = redata.data
@@ -392,7 +412,11 @@ export default {
      */
     readyGame(){
       this.ready = !this.ready
-      this.sendDataToServer('READY')
+      if (this.ready) {
+        this.sendDataToServer('READY')
+      } else {
+        this.sendDataToServer('UNREADY')
+      }
     },
     /**
      * 根据RoomInfo更新数据
@@ -528,6 +552,12 @@ export default {
         this.enemy.showCardList = []
         this.enemy.hideCardList = []
       }
+    },
+    /**
+     * 退出房间
+     */
+    quit(){
+      this.$router.push('/home');
     }
   },
   async mounted() {
