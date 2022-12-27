@@ -20,6 +20,7 @@
             :fit="'fit'"></el-image>
         <img class="shadow" v-if="room.status==0" src="../../assets/ready.svg" alt="" width="25%" style="position: absolute; top: 0; left: 0;">
         <img class="shadow" v-if="room.status==1" src="../../assets/going.svg" alt="" width="25%" style="position: absolute; top: 0; left: 0;">
+        <div class="shadow" style="position: absolute; top: 5px; right: 5px;color: white;font-size: large;">{{ room.peopleNum }}人</div>
         <div style="padding: 5px;">
           <div  style="text-overflow: ellipsis;white-space: nowrap;overflow: hidden;width: 100%">{{ room.name }}</div>
           <div>房间号：{{ room.id }}</div>
