@@ -216,6 +216,17 @@
         <el-button type="primary" @click="gameOverDialogVisible = false">确 定</el-button>
       </span>
     </el-dialog>
+
+    <el-dialog
+        title="对方已离开，游戏结束"
+        :visible.sync="enemyQuitDialogVisible"
+        width="30%"
+        center>
+      <span>你获得了本局的胜利！</span>
+      <span slot="footer" class="dialog-footer">
+        <el-button type="primary" @click="enemyQuitDialogVisible = false">确 定</el-button>
+      </span>
+    </el-dialog>
   </div>
 </template>
 
@@ -270,6 +281,9 @@ export default {
 
       //游戏结束弹窗
       gameOverDialogVisible: false,
+
+      //对手退出弹窗
+      enemyQuitDialogVisible: false,
 
       roomBackground: {
         backgroundImage:"url(" + require("../../assets/background2.png") + ")",
@@ -356,6 +370,7 @@ export default {
           break
         case 'CONTINUE_ALERT': // 无法继续时
           this.nextRoundBtnDisable = false
+          this.showNextRound = true
           this.$message({
             message: redata.data,
             type: "warning",
@@ -421,10 +436,16 @@ export default {
           break
         case 'CONN_ERR': // 连接异常
           this.$message({
-            message: '服务器跟丢了。。。',
+            message: '房间已不存在！',
             type: "warning",
           });
           this.quit()
+          break
+        case 'ENEMY_QUIT': // 对方中途退出
+          this.roomInfo = redata.data
+          this.enemyQuitDialogVisible = true
+          this.globalInit()
+          this.refreshByRoomInfo();
           break
       }
     },
@@ -472,6 +493,8 @@ export default {
      * 根据RoomInfo更新数据
      */
     refreshByRoomInfo(){
+      this.player = null
+      this.enemy = null
       this.roomInfo.players.forEach((item) => {
         if (item.user.uid == this.user.uid) {
           this.player = item
@@ -519,15 +542,31 @@ export default {
       }
     },
     /**
+     * 前端假装出牌
+     */
+    frontPlayCards(){
+      if (this.playCardList[0]>this.playCardList[1]) {
+        this.player.idleCardList.splice(this.playCardList[0], 1)
+        this.player.idleCardList.splice(this.playCardList[1], 1)
+      } else {
+        this.player.idleCardList.splice(this.playCardList[1], 1)
+        this.player.idleCardList.splice(this.playCardList[0], 1)
+      }
+    },
+    /**
      * 出牌
      */
     playCards(){
       if (this.canPlayCard) {
         this.canPlayCard = false
         if (this.playCardList.length == 2 && this.currentStatus == 'show') {
+          this.frontPlayCards();
+          this.player.showCardList = [0,0]  // 前端先展示两张假牌等待后端更新
           this.sendDataToServer('SHOW#'+this.playCardList[0]+'#'+this.playCardList[1])
           this.playCardList = []
         } else if (this.playCardList.length == 2 && this.currentStatus == 'hide') {
+          this.frontPlayCards();
+          this.player.hideCardList = [0,0]  // 前端先展示两张假牌等待后端更新
           this.sendDataToServer('HIDE#'+this.playCardList[0]+'#'+this.playCardList[1])
           this.playCardList = []
         }
@@ -608,6 +647,44 @@ export default {
         this.enemy.showCardList = []
         this.enemy.hideCardList = []
       }
+    },
+    /**
+     * 全局初始化
+     */
+    globalInit(){
+      this.winner = null
+      this.enemy = null
+
+      // 准备按钮
+      this.ready = false
+      this.showReadyBtn = true
+      this.hasShownGameBegin = false
+
+      this.playCardList = [] // 选中的牌
+      this.currentStatus = 'show'// 当前状态show可以出明牌，hide可以出隐藏牌，end一回合结束
+      this.showBright = false
+      this.showHide = false
+      this.showChangeRice = false
+
+      //出牌
+      this.canPlayCard = true
+
+      //结束本回合
+      this.showEndBtn = false
+      this.endBtnDisable = false
+
+      //继续按钮
+      this.showNextRound = false
+      this.nextRoundBtnDisable = false
+
+      //重新开始按钮
+      this.showRestartBtn = false
+
+      //抽卡弹窗
+      this.drawCardDialogVisible = false
+
+      //游戏结束弹窗
+      this.gameOverDialogVisible = false
     },
     /**
      * 退出房间

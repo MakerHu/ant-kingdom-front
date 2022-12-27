@@ -21,9 +21,8 @@
         <img class="shadow" v-if="room.status==0" src="../../assets/ready.svg" alt="" width="25%" style="position: absolute; top: 0; left: 0;">
         <img class="shadow" v-if="room.status==1" src="../../assets/going.svg" alt="" width="25%" style="position: absolute; top: 0; left: 0;">
         <div style="padding: 5px;">
-          <span>{{ room.name }}</span><br>
-          <span>房间号：{{ room.id }}</span>
-          <span style="margin-left: 5px">状态: {{ room.status | status }}</span>
+          <div  style="text-overflow: ellipsis;white-space: nowrap;overflow: hidden;width: 100%">{{ room.name }}</div>
+          <div>房间号：{{ room.id }}</div>
         </div>
       </div>
     </div>
@@ -120,23 +119,6 @@ export default {
     })
 
     this.readFile()
-  },
-  filters: {
-    status(value) {
-      switch (value) {
-        case 0:
-          return '未开始'
-          break
-        case 1:
-          return '进行中'
-          break
-        case 2:
-          return '已结束'
-          break
-        default:
-          return ''
-      }
-    }
   }
 };
 </script>
@@ -156,7 +138,7 @@ export default {
   margin-bottom: 10px;
   cursor: pointer;
   /*background-color: white;*/
-  background-image: linear-gradient(120deg, #fdfbfb 0%, #ebedee 100%);
+  background-image: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
   border-radius: 10px;
   position: relative;
   /*display: flex;*/
