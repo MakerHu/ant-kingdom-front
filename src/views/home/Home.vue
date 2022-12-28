@@ -13,6 +13,7 @@
     <el-button @click="refreshRoomList">刷新</el-button>
 
     <div class="room-card-panel loc-center">
+      <el-empty v-if="!roomList || !roomList.length" description="创建一个房间吧~"></el-empty>
       <div class="room-card card-shadow" v-for="(room,index) in roomList" @click="enterRoom(room)" :key="index">
         <el-image
             style="width: 100%;border-radius: 10px 10px 0 0px"
@@ -166,5 +167,9 @@ export default {
 
 .card-shadow:hover {
   filter: drop-shadow(2px 3px 8px #ffffff);
+}
+
+/deep/ .el-empty__description p {
+  color: white;
 }
 </style>

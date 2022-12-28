@@ -322,7 +322,8 @@ export default {
     wsInit() {
       // let wsuri = 'ws://localhost:8081/websocket/'+this.user.uid
       // let wsuri = 'ws://114.115.131.120:8081/websocket/'+this.user.uid
-      let wsuri = 'ws://'+window.location.hostname+':8081/websocket/'+this.user.uid+'#'+this.roomMsg.id
+      // let wsuri = 'ws://'+window.location.hostname+':8081/websocket/'+this.user.uid+'#'+this.roomMsg.id
+      let wsuri = 'ws://'+window.location.hostname+':8081/websocket/'+this.user.uid
       this.ws = wsuri
       if (!this.wsIsRun) return
       // 销毁ws
@@ -351,7 +352,7 @@ export default {
     },
     wsOpenHanler(event) {
       console.log('ws建立连接成功')
-      // this.sendDataToServer('ENTER#'+this.roomMsg.id)
+      this.sendDataToServer('ENTER#'+this.roomMsg.id)
     },
     wsMessageHanler(e) {
       console.log('wsMessageHanler')
@@ -399,18 +400,22 @@ export default {
         case 'SHOW_OUT': // 第一阶段出牌结束
           this.roomInfo = redata.data
           this.currentStatus = 'hide'
-          this.showBright = true
-          this.canPlayCard = true
           this.refreshByRoomInfo();
+          setTimeout(()=>{
+            this.showBright = true
+            this.canPlayCard = true
+          },2000)
           break
         case 'HIDE_OUT':  // 第二阶段出牌结束
           this.roomInfo = redata.data
-          this.showHide = true
-          this.showEndBtn = true
-          this.$message({
-            message: '你可以选择修改环境或结束本回合'
-          });
           this.refreshByRoomInfo();
+          setTimeout(()=>{
+            this.showHide = true
+            this.showEndBtn = true
+            this.$message({
+              message: '你可以选择修改环境或结束本回合'
+            });
+          },2000)
           break
         case 'END_OUT':  // 回合结束
           this.roomInfo = redata.data
