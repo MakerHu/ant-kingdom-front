@@ -320,8 +320,9 @@ export default {
      * 初始化ws
      */
     wsInit() {
-      let wsuri = 'ws://localhost:8081/websocket/'+this.user.uid
+      // let wsuri = 'ws://localhost:8081/websocket/'+this.user.uid
       // let wsuri = 'ws://114.115.131.120:8081/websocket/'+this.user.uid
+      let wsuri = 'ws://'+window.location.hostname+':8081/websocket/'+this.user.uid
       this.ws = wsuri
       if (!this.wsIsRun) return
       // 销毁ws
@@ -690,6 +691,7 @@ export default {
      * 退出房间
      */
     quit(){
+      this.sendDataToServer('QUIT')
       this.$router.push('/home');
     }
   },
