@@ -205,17 +205,18 @@
       </span>
     </el-dialog>
 
-    <el-dialog
-        title="游戏结束"
-        :visible.sync="gameOverDialogVisible"
-        width="30%"
-        center>
-      <span>赢家是：{{ (winner&&winner.user)? winner.user.uname:'' }}</span>
-      <span style="margin-left: 10px">总粮食：{{ winner? (winner.rice+'米'):'' }}</span>
-      <span slot="footer" class="dialog-footer">
-        <el-button type="primary" @click="gameOverDialogVisible = false">确 定</el-button>
-      </span>
-    </el-dialog>
+    <div class='popContainer loc-center' v-if="gameOverDialogVisible" @click="gameOverDialogVisible = false">
+      <div style="width: 30%;">
+        <div v-if="winner&&winner.user&&winner.user.uid != user.uid">
+          <img class="shadow" src="../../assets/fail.png" alt="失败" width="60%" style="cursor: pointer;">
+        </div>
+        <div class="loc-center" v-else style="position: relative;width: 100%;">
+          <img class="shadow" src="../../assets/victory.png" alt="奖杯" width="35%" style="cursor: pointer;">
+          <span style="position: absolute; top: 0; left: 50%;transform: translate(-50%, -100%);color: #ffffff">+{{ winner? (winner.rice+'米'):'' }}</span>
+          <span style="position: absolute; bottom: 0; left: 50%;transform: translate(-50%, -80%);color: #f6d365">{{ (winner&&winner.user)? winner.user.uname:'' }}</span>
+        </div>
+      </div>
+    </div>
 
     <el-dialog
         title="对方已离开，游戏结束"
@@ -789,5 +790,14 @@ export default {
 .shadow {
   /*box-shadow: 3px 3px 8px #000000;*/
   filter: drop-shadow(2px 3px 8px #5d5a5a);
+}
+
+div.popContainer {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(0, 0, 0, 0.7);
 }
 </style>
