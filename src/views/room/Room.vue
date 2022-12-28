@@ -322,7 +322,7 @@ export default {
     wsInit() {
       // let wsuri = 'ws://localhost:8081/websocket/'+this.user.uid
       // let wsuri = 'ws://114.115.131.120:8081/websocket/'+this.user.uid
-      let wsuri = 'ws://'+window.location.hostname+':8081/websocket/'+this.user.uid
+      let wsuri = 'ws://'+window.location.hostname+':8081/websocket/'+this.user.uid+'#'+this.roomMsg.id
       this.ws = wsuri
       if (!this.wsIsRun) return
       // 销毁ws
@@ -351,7 +351,7 @@ export default {
     },
     wsOpenHanler(event) {
       console.log('ws建立连接成功')
-      this.sendDataToServer('ENTER#'+this.roomMsg.id)
+      // this.sendDataToServer('ENTER#'+this.roomMsg.id)
     },
     wsMessageHanler(e) {
       console.log('wsMessageHanler')
