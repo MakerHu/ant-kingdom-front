@@ -454,6 +454,15 @@ export default {
           this.globalInit()
           this.refreshByRoomInfo();
           break
+        case 'ENTER_ERR': // 对方中途退出
+          this.wsDestroy()
+          this.$message({
+            message: '你未从房间：'+redata.data.name +' '+redata.data.id+' 正常退出，已为你自动跳转到该房间',
+            type: "warning",
+          });
+          this.roomMsg = redata.data
+          this.wsInit()
+          break
       }
     },
     /**
