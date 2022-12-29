@@ -323,7 +323,7 @@ export default {
     wsInit() {
       // let wsuri = 'ws://localhost:8081/websocket/'+this.user.uid
       // let wsuri = 'ws://114.115.131.120:8081/websocket/'+this.user.uid
-      let wsuri = 'ws://'+window.location.hostname+':8081/websocket/'+this.user.uid+'#'+this.roomMsg.id
+      let wsuri = 'ws://'+window.location.hostname+':8081/websocket/'+this.user.uid+'-'+this.roomMsg.id
       // let wsuri = 'ws://'+window.location.hostname+':8081/websocket/'+this.user.uid
       this.ws = wsuri
       if (!this.wsIsRun) return
