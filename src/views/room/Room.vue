@@ -29,7 +29,7 @@
         <div class="loc-center" style="position: relative;width: 100%;height: 100%;">
           <div>
             <img class="shadow" v-if="enemy&&enemy.user" width="30%" style="border-radius: 50%" alt="玩家2" src="../../assets/player2.jpg">
-            <div style="color: white;margin-bottom: 3px">{{ enemy&&enemy.user ? enemy.user.uname:'' }}</div>
+            <div style="color: white;margin-bottom: 3px">{{ enemy&&enemy.user ? enemy.user.uname:'' }}-{{enemy? enemy.state:''}}</div>
             <span class="shadow" v-if="enemy&&enemy.rice" style="color: #33312d;background-image: linear-gradient(120deg, #f6d365 0%, #fda085 100%);border-radius: 5px;padding: 2px;">
               {{ enemy&&enemy.rice ? enemy.rice+'米':'' }}
             </span>
@@ -162,7 +162,7 @@
       <el-col class="loc-center" :span="4">
         <div>
           <img class="shadow" v-if="player&&player.user" width="30%" style="border-radius: 50%" alt="玩家1" src="../../assets/player1.jpg">
-          <div style="color: white">{{ player? player.user.uname:'' }}</div>
+          <div style="color: white">{{ player&&player.user? player.user.uname:'' }}-{{player? player.state:''}}</div>
         </div>
       </el-col>
 
