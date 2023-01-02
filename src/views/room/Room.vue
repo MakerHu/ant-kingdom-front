@@ -256,8 +256,6 @@ export default {
       playCardList: [], // 选中的牌
       currentStatus: '',// 本人当前状态
       enemyStatus: '',// 对手当前状态
-      showBright: false,
-      showHide: false,
       showChangeRice: false,
 
       //出牌
@@ -294,6 +292,14 @@ export default {
     },
     restartBtn(value) {
       return value ? '取消准备':'再来一局'
+    }
+  },
+  computed: {
+    showBright: function () {
+      return this.currentStatus !== 'SHOW_START' && this.currentStatus !== 'SHOW_END'
+    },
+    showHide: function () {
+      return this.currentStatus !== 'SHOW_START' && this.currentStatus !== 'SHOW_END' && this.currentStatus !== 'HIDE_START' && this.currentStatus !== 'HIDE_END'
     }
   },
   methods: {
