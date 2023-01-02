@@ -82,7 +82,7 @@
         <el-row class="center-row-two" :gutter="5">
           <el-col :span="24" class="loc-center">
             <transition name = "fade">
-              <div v-if="currentStatus == 'UNREADY' || currentStatus == 'READY'" @click="readyGame()" style="position: relative;height: 50px; width: 120px;cursor: pointer;">
+              <div v-if="showRestartBtn==false && (currentStatus == 'UNREADY' || currentStatus == 'READY')" @click="readyGame()" style="position: relative;height: 50px; width: 120px;cursor: pointer;">
                 <img class="shadow" src="../../assets/button.png" alt="开始" width="100%" height="100%" style="position: absolute; left: 50%; top: 50%;transform: translate(-50%, -50%);">
                 <div style="position: absolute; left: 50%; top: 50%;transform: translate(-50%, -50%);width: 100%;color: white;font-size: larger">{{ ready | readyBtn }}</div>
               </div>
