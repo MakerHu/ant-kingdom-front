@@ -29,7 +29,7 @@
         <div class="loc-center" style="position: relative;width: 100%;height: 100%;">
           <div>
             <img class="shadow" v-if="enemy&&enemy.user" width="30%" style="border-radius: 50%" alt="玩家2" src="../../assets/player2.jpg">
-            <div style="color: white;margin-bottom: 3px">{{ enemy&&enemy.user ? enemy.user.uname:'' }}-{{enemy? enemy.state:''}}</div>
+            <div style="color: white;margin-bottom: 3px">{{ enemy&&enemy.user ? enemy.user.uname:'' }}-{{enemyStatus? enemyStatus:''}}</div>
             <span class="shadow" v-if="enemy&&enemy.rice" style="color: #33312d;background-image: linear-gradient(120deg, #f6d365 0%, #fda085 100%);border-radius: 5px;padding: 2px;">
               {{ enemy&&enemy.rice ? enemy.rice+'米':'' }}
             </span>
@@ -82,7 +82,7 @@
         <el-row class="center-row-two" :gutter="5">
           <el-col :span="24" class="loc-center">
             <transition name = "fade">
-              <div v-show="showReadyBtn" @click="readyGame()" style="position: relative;height: 50px; width: 120px;cursor: pointer;">
+              <div v-if="currentStatus == 'UNREADY' || currentStatus == 'READY'" @click="readyGame()" style="position: relative;height: 50px; width: 120px;cursor: pointer;">
                 <img class="shadow" src="../../assets/button.png" alt="开始" width="100%" height="100%" style="position: absolute; left: 50%; top: 50%;transform: translate(-50%, -50%);">
                 <div style="position: absolute; left: 50%; top: 50%;transform: translate(-50%, -50%);width: 100%;color: white;font-size: larger">{{ ready | readyBtn }}</div>
               </div>
@@ -128,23 +128,20 @@
         <el-tooltip effect="light" content="双方回合结束点我，用粮食补充兵力" placement="top">
           <img class="shadow" src="../../assets/ant1.png" alt="野外" height="40%" @click="drawCard()" style="cursor: pointer;">
         </el-tooltip>
-<!--        <el-button v-show="this.playCardList.length == 2 && (this.currentStatus == 'show' || this.currentStatus == 'hide')" @click="playCards()">出牌</el-button>-->
-<!--        <el-button v-show="showEndBtn" :disabled="endBtnDisable" @click="endThisRound()">结束本回合</el-button>-->
-<!--        <el-button v-show="showNextRound" :disabled="nextRoundBtnDisable" @click="nextRound()">继续</el-button>-->
         <transition name = "fade">
-          <div v-if="this.playCardList.length == 2 && (this.currentStatus == 'show' || this.currentStatus == 'hide')" @click="playCards()" style="position: relative;height: 50px; width: 80px;cursor: pointer;">
+          <div v-if="this.playCardList.length == 2 && (this.currentStatus == 'SHOW_START' || this.currentStatus == 'HIDE_START')" @click="playCards()" style="position: relative;height: 50px; width: 80px;cursor: pointer;">
             <img class="shadow" src="../../assets/button.png" alt="出牌" width="100%" height="100%" style="position: absolute; left: 50%; top: 50%;transform: translate(-50%, -50%);">
             <div style="position: absolute; left: 50%; top: 50%;transform: translate(-50%, -50%);width: 100%;color: white;font-size: larger">出牌</div>
           </div>
         </transition>
         <transition name = "fade">
-          <div v-if="showEndBtn" @click="endThisRound()" style="position: relative;height: 50px; width: 120px;cursor: pointer;">
+          <div v-if="currentStatus == 'BOTH_HIDE_END'" @click="endThisRound()" style="position: relative;height: 50px; width: 120px;cursor: pointer;">
             <img class="shadow" src="../../assets/button.png" alt="结束本回合" width="100%" height="100%" style="position: absolute; left: 50%; top: 50%;transform: translate(-50%, -50%);">
             <div style="position: absolute; left: 50%; top: 50%;transform: translate(-50%, -50%);width: 100%;color: white;font-size: larger">结束本回合</div>
           </div>
         </transition>
         <transition name = "fade">
-          <div v-if="showNextRound" @click="nextRound()" style="position: relative;height: 50px; width: 80px;cursor: pointer;">
+          <div v-if="currentStatus == 'UNCONTINUE'" @click="nextRound()" style="position: relative;height: 50px; width: 80px;cursor: pointer;">
             <img class="shadow" src="../../assets/button.png" alt="继续" width="100%" height="100%" style="position: absolute; left: 50%; top: 50%;transform: translate(-50%, -50%);">
             <div style="position: absolute; left: 50%; top: 50%;transform: translate(-50%, -50%);width: 100%;color: white;font-size: larger">继续</div>
           </div>
@@ -162,7 +159,7 @@
       <el-col class="loc-center" :span="4">
         <div>
           <img class="shadow" v-if="player&&player.user" width="30%" style="border-radius: 50%" alt="玩家1" src="../../assets/player1.jpg">
-          <div style="color: white">{{ player&&player.user? player.user.uname:'' }}-{{player? player.state:''}}</div>
+          <div style="color: white">{{ player&&player.user? player.user.uname:'' }}-{{currentStatus? currentStatus:''}}</div>
         </div>
       </el-col>
 
@@ -254,25 +251,17 @@ export default {
 
       // 准备按钮
       ready: false,
-      showReadyBtn: true,
       hasShownGameBegin: false,
 
       playCardList: [], // 选中的牌
-      currentStatus: 'show',// 当前状态show可以出明牌，hide可以出隐藏牌，end一回合结束
+      currentStatus: '',// 本人当前状态
+      enemyStatus: '',// 对手当前状态
       showBright: false,
       showHide: false,
       showChangeRice: false,
 
       //出牌
       canPlayCard: true,
-
-      //结束本回合
-      showEndBtn: false,
-      endBtnDisable: false,
-
-      //继续按钮
-      showNextRound: false,
-      nextRoundBtnDisable: false,
 
       //重新开始按钮
       showRestartBtn: false,
@@ -372,8 +361,6 @@ export default {
           });
           break
         case 'CONTINUE_ALERT': // 无法继续时
-          this.nextRoundBtnDisable = false
-          this.showNextRound = true
           this.$message({
             message: redata.data,
             type: "warning",
@@ -400,7 +387,6 @@ export default {
           break
         case 'SHOW_OUT': // 第一阶段出牌结束
           this.roomInfo = redata.data
-          this.currentStatus = 'hide'
           this.refreshByRoomInfo();
           setTimeout(()=>{
             this.showBright = true
@@ -412,7 +398,6 @@ export default {
           this.refreshByRoomInfo();
           setTimeout(()=>{
             this.showHide = true
-            this.showEndBtn = true
             this.$message({
               message: '你可以选择修改环境或结束本回合'
             });
@@ -420,10 +405,7 @@ export default {
           break
         case 'END_OUT':  // 回合结束
           this.roomInfo = redata.data
-          this.currentStatus = 'end'
           this.showChangeRice = true
-          this.showEndBtn = false
-          this.showNextRound = true
           setTimeout(()=>{
             this.showChangeRice = false
           },2000)
@@ -438,7 +420,6 @@ export default {
           })
           this.gameOverDialogVisible = true
           this.showRestartBtn = true
-          this.showNextRound = false
           this.refreshByRoomInfo()
           break
         case 'CONN_ERR': // 连接异常
@@ -514,6 +495,7 @@ export default {
       this.roomInfo.players.forEach((item) => {
         if (item.user.uid == this.user.uid) {
           this.player = item
+          this.currentStatus = item.state
           if (this.player.idleCardList) {
             this.player.idleCardList.forEach((card) => {
               this.$set(card, 'shadow', false)
@@ -526,6 +508,7 @@ export default {
           }
         } else {
           this.enemy = item
+          this.enemyStatus = item.state
         }
       })
     },
@@ -535,10 +518,10 @@ export default {
      */
     selectCard(index, shadow){
       if (!shadow && this.playCardList.length>=2){
-        let message = ''
-        if (this.currentStatus == 'show') {
+        let message = '只能选两张牌'
+        if (this.currentStatus == 'SHOW_START') {
           message = '只能选择两张亮牌'
-        } else {
+        } else if(this.currentStatus == 'HIDE_START') {
           message = '只能选择两张暗牌'
         }
         this.$message({
@@ -575,12 +558,12 @@ export default {
     playCards(){
       if (this.canPlayCard) {
         this.canPlayCard = false
-        if (this.playCardList.length == 2 && this.currentStatus == 'show') {
+        if (this.playCardList.length == 2 && this.currentStatus == 'SHOW_START') {
           this.frontPlayCards();
           this.player.showCardList = [0,0]  // 前端先展示两张假牌等待后端更新
           this.sendDataToServer('SHOW#'+this.playCardList[0]+'#'+this.playCardList[1])
           this.playCardList = []
-        } else if (this.playCardList.length == 2 && this.currentStatus == 'hide') {
+        } else if (this.playCardList.length == 2 && this.currentStatus == 'HIDE_START') {
           this.frontPlayCards();
           this.player.hideCardList = [0,0]  // 前端先展示两张假牌等待后端更新
           this.sendDataToServer('HIDE#'+this.playCardList[0]+'#'+this.playCardList[1])
@@ -598,23 +581,19 @@ export default {
      * 结束本回合
      */
     endThisRound(){
-      this.endBtnDisable = true
-      this.showEndBtn = false
       this.sendDataToServer('END')
     },
     /**
      * 下一回合
      */
     nextRound(){
-      this.nextRoundBtnDisable = true
-      this.showNextRound = false
       this.sendDataToServer('CONTINUE')
     },
     /**
      * 抽卡
      */
     drawCard(){
-      if (this.currentStatus == 'end' && this.nextRoundBtnDisable == false){
+      if (this.currentStatus == 'UNCONTINUE'){
         this.drawCardDialogVisible = true
       } else {
         this.$message({
@@ -631,26 +610,16 @@ export default {
      * 回合初始化
      */
     roundInit(){
-      this.showReadyBtn = false
       this.showRestartBtn = false
       this.ready = false  //为下一局的开始做准备
 
       // this.playCardList = []
-      this.currentStatus = 'show'// 当前状态show可以出明牌，hide可以出隐藏牌，end一回合结束
       this.showBright = false
       this.showHide = false
       this.showChangeRice = false
 
       //出牌
       this.canPlayCard = true
-
-      //结束本回合
-      this.showEndBtn = false
-      this.endBtnDisable = false
-
-      //继续按钮
-      this.showNextRound = false
-      this.nextRoundBtnDisable = false
 
       //抽卡弹窗
       this.drawCardDialogVisible = false
@@ -673,25 +642,15 @@ export default {
 
       // 准备按钮
       this.ready = false
-      this.showReadyBtn = true
       this.hasShownGameBegin = false
 
       this.playCardList = [] // 选中的牌
-      this.currentStatus = 'show'// 当前状态show可以出明牌，hide可以出隐藏牌，end一回合结束
       this.showBright = false
       this.showHide = false
       this.showChangeRice = false
 
       //出牌
       this.canPlayCard = true
-
-      //结束本回合
-      this.showEndBtn = false
-      this.endBtnDisable = false
-
-      //继续按钮
-      this.showNextRound = false
-      this.nextRoundBtnDisable = false
 
       //重新开始按钮
       this.showRestartBtn = false
