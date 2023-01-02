@@ -28,9 +28,17 @@
       <el-col class="loc-center" :span="4">
         <div class="loc-center" style="position: relative;width: 100%;height: 100%;">
           <div>
-            <img class="shadow" v-if="enemy&&enemy.user" width="30%" style="border-radius: 50%" alt="玩家2" src="../../assets/player2.jpg">
-            <div style="color: white;margin-bottom: 3px">{{ enemy&&enemy.user ? enemy.user.uname:'' }}-{{enemyStatus? enemyStatus:''}}</div>
-            <span class="shadow" v-if="enemy&&enemy.rice" style="color: #33312d;background-image: linear-gradient(120deg, #f6d365 0%, #fda085 100%);border-radius: 5px;padding: 2px;">
+            <div class="loc-center" style="position: relative;width: 100%;height: 100%;">
+              <div class="frosted loc-center" v-if="enemy? enemy.offLine:false" style="width: 30%;height:100%;border-radius: 50%;color: white;top: 50%; left: 50%;transform: translate(-50%, -50%);">
+                <img class="shadow" style="z-index: 999" width="50%" alt="离线" src="../../assets/offline.svg">
+              </div>
+              <img class="shadow" v-if="enemy&&enemy.user" width="30%" style="border-radius: 50%" alt="玩家2" src="../../assets/player2.jpg">
+            </div>
+            <div class="text-shadow" style="color: white;margin-bottom: 3px;margin-top: 3px;">{{ enemy&&enemy.user ? enemy.user.uname:'' }}</div>
+            <span class="shadow" v-if="enemy&&enemy.rice" style="color: #42413c;background-image: linear-gradient(120deg, #f6d365 0%, #fda085 100%);border-radius: 5px;padding: 2px;">
+              {{ enemy&&enemyStatus? enemyStatus:'' | statusFilter }}
+            </span>
+            <span class="shadow" v-if="enemy&&enemy.rice" style="color: #42413c;background-image: linear-gradient(120deg, #f6d365 0%, #fda085 100%);border-radius: 5px;padding: 2px;margin-left: 5px">
               {{ enemy&&enemy.rice ? enemy.rice+'米':'' }}
             </span>
           </div>
@@ -158,8 +166,8 @@
     <el-row class="row-one">
       <el-col class="loc-center" :span="4">
         <div>
-          <img class="shadow" v-if="player&&player.user" width="30%" style="border-radius: 50%" alt="玩家1" src="../../assets/player1.jpg">
-          <div style="color: white">{{ player&&player.user? player.user.uname:'' }}-{{currentStatus? currentStatus:''}}</div>
+          <img class="shadow" v-if="player&&player.user" width="30%" style="border-radius: 50%;" alt="玩家1" src="../../assets/player1.jpg">
+          <div class="text-shadow" style="color: white">{{ player&&player.user? player.user.uname:'' }}</div>
         </div>
       </el-col>
 
@@ -202,7 +210,7 @@
       </span>
     </el-dialog>
 
-    <div class='popContainer loc-center' v-if="gameOverDialogVisible" @click="gameOverDialogVisible = false">
+    <div class='pop-frosted loc-center' v-if="gameOverDialogVisible" @click="gameOverDialogVisible = false">
       <div style="width: 30%;">
         <div v-if="winner&&winner.user&&winner.user.uid != user.uid">
           <img class="shadow" src="../../assets/fail.png" alt="失败" width="60%" style="cursor: pointer;">
@@ -249,6 +257,8 @@ export default {
       enemy: null,
       winner: null,
 
+      hasFirstInInit: false, // 是否执行了第一次连接后的初始化
+
       // 准备按钮
       ready: false,
       hasShownGameBegin: false,
@@ -256,6 +266,8 @@ export default {
       playCardList: [], // 选中的牌
       currentStatus: '',// 本人当前状态
       enemyStatus: '',// 对手当前状态
+      showBright: false,
+      showHide: false,
       showChangeRice: false,
 
       //出牌
@@ -292,14 +304,42 @@ export default {
     },
     restartBtn(value) {
       return value ? '取消准备':'再来一局'
-    }
-  },
-  computed: {
-    showBright: function () {
-      return this.currentStatus !== 'SHOW_START' && this.currentStatus !== 'SHOW_END'
     },
-    showHide: function () {
-      return this.currentStatus !== 'SHOW_START' && this.currentStatus !== 'SHOW_END' && this.currentStatus !== 'HIDE_START' && this.currentStatus !== 'HIDE_END'
+    statusFilter(value) {
+      let status = ''
+      switch (value) {
+        case 'UNREADY':
+          status = '未准备'
+          break
+        case 'READY':
+          status = '已准备'
+          break
+        case 'SHOW_START':
+          status = '出牌中'
+          break
+        case 'SHOW_END':
+          status = '已出牌'
+          break
+        case 'HIDE_START':
+          status = '出牌中'
+          break
+        case 'HIDE_END':
+          status = '已出牌'
+          break
+        case 'BOTH_HIDE_END':
+          status = '未结束'
+          break
+        case 'ROUND_END':
+          status = '已结束'
+          break
+        case 'UNCONTINUE':
+          status = '未继续'
+          break
+        case 'CONTINUE':
+          status = '已继续'
+          break
+      }
+      return status
     }
   },
   methods: {
@@ -457,6 +497,14 @@ export default {
           });
           this.$router.push('/home');
           break
+        case 'OFFLINE': // 对方掉线
+          this.roomInfo = redata.data
+          this.refreshByRoomInfo();
+          this.$message({
+            message: '对方似乎掉线了。。。',
+            type: "warning",
+          });
+          break
       }
     },
     /**
@@ -524,6 +572,7 @@ export default {
           this.enemyStatus = item.state
         }
       })
+      this.fistIn()
     },
     /**
      * 选择卡片
@@ -680,6 +729,16 @@ export default {
     quit(){
       this.sendDataToServer('QUIT')
       this.$router.push('/home');
+    },
+    /**
+     * 刚进入房间时，且第一次获取到后端数据时执行一次
+     */
+    fistIn(){
+      if (!this.hasFirstInInit) {
+        this.hasFirstInInit = true
+        this.showBright = this.currentStatus !== 'SHOW_START' && this.currentStatus !== 'SHOW_END'
+        this.showHide = this.currentStatus !== 'SHOW_START' && this.currentStatus !== 'SHOW_END' && this.currentStatus !== 'HIDE_START' && this.currentStatus !== 'HIDE_END'
+      }
     }
   },
   async mounted() {
@@ -773,12 +832,28 @@ export default {
   filter: drop-shadow(2px 3px 8px #5d5a5a);
 }
 
-div.popContainer {
+div.pop-frosted {
   position: fixed;
   top: 0;
   left: 0;
   right: 0;
   bottom: 0;
   background: rgba(0, 0, 0, 0.7);
+  backdrop-filter: blur(1px);
+}
+
+div.frosted {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(9, 9, 9, 0.4);
+  backdrop-filter: blur(1px);
+  z-index: 9999;
+}
+
+.text-shadow {
+  text-shadow: 0.1em 0.1em 0.2em black
 }
 </style>
