@@ -444,6 +444,13 @@ export default {
           this.roomMsg = redata.data
           this.wsInit()
           break
+        case 'DEVICE_REPLACE': // 设备顶替
+          this.$message({
+            message: redata.data,
+            type: "warning",
+          });
+          this.$router.push('/home');
+          break
       }
     },
     /**
