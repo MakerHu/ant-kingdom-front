@@ -164,12 +164,6 @@
     </el-row>
 
     <el-row class="row-one">
-<!--      <el-col class="loc-center" :span="4">-->
-<!--        <div>-->
-<!--          <img class="shadow" v-if="player&&player.user" width="30%" style="border-radius: 50%;" alt="玩家1" src="../../assets/player1.jpg">-->
-<!--          <div class="text-shadow" style="color: white">{{ player&&player.user? player.user.uname:'' }}</div>-->
-<!--        </div>-->
-<!--      </el-col>-->
       <el-col class="loc-center" :span="4">
         <div class="loc-center" style="position: relative;width: 100%;height: 100%;">
           <div>
@@ -434,17 +428,19 @@ export default {
         case 'START': // 开始
           this.roomInfo = redata.data
           this.roundInit()
-            let showMsg = '回合开始！'
-            if (!this.hasShownGameBegin) {
-              this.hasShownGameBegin = !this.hasShownGameBegin
-              showMsg = '游戏开始！'
-            }
+          let showMsg = '回合开始！'
+          if (!this.hasShownGameBegin) {
+            this.hasShownGameBegin = !this.hasShownGameBegin
+            showMsg = '游戏开始！'
+          }
           this.$notify.success({
             title: showMsg,
             showClose: false,
             offset: 150
           });
           this.refreshByRoomInfo();
+          this.enemyScore = this.enemy.score
+          this.playerScore = this.player.score
           break
         case 'SHOW_OUT': // 第一阶段出牌结束
           this.roomInfo = redata.data
