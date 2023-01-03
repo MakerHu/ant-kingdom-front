@@ -102,8 +102,8 @@
                 <div style="position: absolute; left: 50%; top: 50%;transform: translate(-50%, -50%);width: 100%;color: white;font-size: larger">{{ ready | readyBtn }}</div>
               </div>
             </transition>
-            <div v-if="roomInfo && roomInfo.environmentCard" style="position: relative;height: 100%;cursor: pointer;">
-              <el-tooltip effect="light" content="点我可随时改造环境（待实现）" placement="top">
+            <div v-if="roomInfo && roomInfo.environmentCard" @click="onEnvBtn()" style="position: relative;height: 100%;cursor: pointer;">
+              <el-tooltip effect="light" content="点我可随时改造环境" placement="top">
                 <img class="shadow" v-if="roomInfo && roomInfo.environmentCard && roomInfo.environmentCard.name == '森林'" src="../../assets/forest1.png" alt="森林" height="100%">
                 <img class="shadow" v-if="roomInfo && roomInfo.environmentCard && roomInfo.environmentCard.name == '沙漠'" src="../../assets/desert.png" alt="沙漠" height="100%">
                 <img class="shadow" v-if="roomInfo && roomInfo.environmentCard && roomInfo.environmentCard.name == '草原'" src="../../assets/grassland.png" alt="草原" height="100%">
@@ -265,6 +265,84 @@
         <el-button type="primary" @click="enemyQuitDialogVisible = false">确 定</el-button>
       </span>
     </el-dialog>
+
+<!--    改造环境弹窗-->
+<!--    <el-dialog-->
+<!--        title="改造环境"-->
+<!--        :visible.sync="changeEnvDialogVisible"-->
+<!--        width="30%">-->
+<!--      <span>改造环境需要的最少投入为：{{ roomInfo ? roomInfo.environmentRice:'' }}</span>-->
+<!--      <el-input v-model="playerEnvRice" placeholder="改造投入"></el-input>-->
+<!--      <span slot="footer" class="dialog-footer">-->
+<!--        <el-button @click="changeEnvDialogVisible = false">取 消</el-button>-->
+<!--        <el-button type="primary" @click="confirmChangeEvn()">确 定</el-button>-->
+<!--      </span>-->
+<!--    </el-dialog>-->
+    <transition name = "fade">
+      <div class='pop-frosted loc-center' v-if="changeEnvDialogVisible">
+        <div style="width: 30%;">
+          <div class="loc-center" style="position: relative;width: 100%;">
+            <div style="position: relative;width: 30%">
+              <img class="shadow" v-if="roomInfo && roomInfo.environmentCard && roomInfo.environmentCard.name ==='沙漠'" src="../../assets/desert.png" alt="沙漠" width="100%">
+              <img class="shadow" v-if="roomInfo && roomInfo.environmentCard && roomInfo.environmentCard.name ==='草原'" src="../../assets/grassland.png" alt="草原" width="100%">
+              <img class="shadow" v-if="roomInfo && roomInfo.environmentCard && roomInfo.environmentCard.name ==='森林'" src="../../assets/forest1.png" alt="森林" width="100%">
+              <div style="position: absolute; top: 5%; left: 5%;color: white;border-radius: 3px;background-color: orange;font-size: small;padding: 1px;min-width: 1em">
+                {{ roomInfo ? roomInfo.environmentRice:'' }}
+              </div>
+            </div>
+            <div style="width: 15%">
+              <div style="margin-bottom: -5px;color: #f6d365">{{ playerEnvRice ? playerEnvRice:'0' }} 米</div>
+              <img class="shadow" src="../../assets/point_right.svg" alt="右箭头" width="100%">
+            </div>
+            <div style="position: relative;width: 30%">
+              <img class="shadow" v-if="currentSelectedEnvCard && currentSelectedEnvCard.name ==='沙漠'" src="../../assets/desert.png" alt="沙漠" width="100%">
+              <img class="shadow" v-if="currentSelectedEnvCard && currentSelectedEnvCard.name ==='草原'" src="../../assets/grassland.png" alt="草原" width="100%">
+              <img class="shadow" v-if="currentSelectedEnvCard && currentSelectedEnvCard.name ==='森林'" src="../../assets/forest1.png" alt="森林" width="100%">
+              <div style="position: absolute; top: 5%; left: 5%;color: white;border-radius: 3px;background-color: orange;font-size: small;padding: 1px;min-width: 1em">
+                {{ playerEnvRice ? playerEnvRice:'0' }}
+              </div>
+            </div>
+          </div>
+          <div style="margin-top: 20px">
+            <el-row :gutter="20">
+              <el-col :span="4">
+                <div class="shadow change-env-btn" @click="resetPlayerEnvRice()">重置</div>
+              </el-col>
+              <el-col :span="4">
+                <div class="shadow change-env-btn" @click="addChangeEnvCost(100)">+100</div>
+              </el-col>
+              <el-col :span="4">
+                <div class="shadow change-env-btn" @click="addChangeEnvCost(50)">+50</div>
+              </el-col>
+              <el-col :span="4">
+                <div class="shadow change-env-btn" @click="addChangeEnvCost(10)">+10</div>
+              </el-col>
+              <el-col :span="4">
+                <div class="shadow change-env-btn" @click="addChangeEnvCost(5)">+5</div>
+              </el-col>
+              <el-col :span="4">
+                <div class="shadow change-env-btn" @click="addChangeEnvCost(1)">+1</div>
+              </el-col>
+            </el-row>
+          </div>
+          <div class="loc-center" style="margin-top: 30px">
+            <transition name = "fade">
+              <div @click="changeEnvDialogVisible = false" style="position: relative;height: 50px; width: 120px;cursor: pointer;">
+                <img class="shadow" src="../../assets/button.png" alt="取 消" width="100%" height="100%" style="position: absolute; left: 50%; top: 50%;transform: translate(-50%, -50%);">
+                <div style="position: absolute; left: 50%; top: 50%;transform: translate(-50%, -50%);width: 100%;color: white;font-size: larger">取 消</div>
+              </div>
+            </transition>
+            <transition name = "fade">
+              <div @click="confirmChangeEvn()" style="position: relative;height: 50px; width: 120px;cursor: pointer;">
+                <img class="shadow" src="../../assets/button.png" alt="确定改造" width="100%" height="100%" style="position: absolute; left: 50%; top: 50%;transform: translate(-50%, -50%);">
+                <div style="position: absolute; left: 50%; top: 50%;transform: translate(-50%, -50%);width: 100%;color: white;font-size: larger">确定改造</div>
+              </div>
+            </transition>
+          </div>
+        </div>
+      </div>
+    </transition>
+
   </div>
 </template>
 
@@ -290,6 +368,9 @@ export default {
       winner: null,
       enemyScore: 0,
       playerScore: 0,
+
+      playerEnvRice: 0, // 玩家打算出的改造环境的代价
+      currentSelectedEnvCard: null, // 当前玩家选择的环境牌
 
       hasFirstInInit: false, // 是否执行了第一次连接后的初始化
 
@@ -318,6 +399,9 @@ export default {
 
       //对手退出弹窗
       enemyQuitDialogVisible: false,
+
+      //改造环境弹窗
+      changeEnvDialogVisible: false,
 
       roomBackground: {
         backgroundImage:"url(" + require("../../assets/background2.png") + ")",
@@ -449,6 +533,8 @@ export default {
         case 'REFRESH': // 刷新牌局
           this.roomInfo = redata.data
           this.refreshByRoomInfo();
+          this.enemyScore = this.enemy.score
+          this.playerScore = this.player.score
           break
         case 'START': // 开始
           this.roomInfo = redata.data
@@ -650,6 +736,17 @@ export default {
       return strType
     },
     /**
+     * 选择牌时针对环境牌附加处理
+     */
+    dealEnvCard(idleCard) {
+      if (this.playCardList.length === 1 && this.playCardList[0].split('@')[0] === 'env') {
+        this.currentSelectedEnvCard = idleCard
+        this.$message({
+          message: "这里换成好看方式提示用户点击环境"
+        });
+      }
+    },
+    /**
      * 选择卡片
      * @param index
      */
@@ -676,8 +773,30 @@ export default {
         if (!shadow){
           this.playCardList.push(cardTag);
         }
+        this.dealEnvCard(idleCard)
         return !shadow
       }
+    },
+    /**
+     * 点击环境
+     */
+    onEnvBtn(){
+      if (this.playCardList.length === 1 && this.playCardList[0].split('@')[0] === 'env') {
+        this.playerEnvRice = this.roomInfo.environmentRice + 1
+        this.changeEnvDialogVisible = true
+      } else {
+        this.$message({
+          message: "请先选择【一张】环境牌"
+        });
+      }
+    },
+    /**
+     * 改造环境
+     */
+    confirmChangeEvn(){
+      this.sendDataToServer('CHANGE_ENV#'+this.playCardList[0]+'#'+this.playerEnvRice)
+      this.playCardList = []
+      this.changeEnvDialogVisible = false
     },
     /**
      * 前端假装出牌
@@ -852,6 +971,18 @@ export default {
         this.showBright = this.currentStatus !== 'SHOW_START' && this.currentStatus !== 'SHOW_END'
         this.showHide = this.currentStatus !== 'SHOW_START' && this.currentStatus !== 'SHOW_END' && this.currentStatus !== 'HIDE_START' && this.currentStatus !== 'HIDE_END'
       }
+    },
+    /**
+     * 增加改造环境投入
+     */
+    addChangeEnvCost(num){
+      this.playerEnvRice += num
+    },
+    /**
+     * 重置环境改造投入
+     */
+    resetPlayerEnvRice(){
+      this.playerEnvRice = this.roomInfo.environmentRice + 1
     }
   },
   async mounted() {
@@ -968,5 +1099,16 @@ div.frosted {
 
 .text-shadow {
   text-shadow: 0.1em 0.1em 0.2em black
+}
+
+.change-env-btn {
+  align-items: center;
+  justify-content: center;
+  display: flex;
+  padding: 3px;
+  border-radius: 3px;
+  background-color: #f6d365;
+  cursor: pointer;
+  height: 2em;
 }
 </style>
