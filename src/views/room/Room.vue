@@ -36,7 +36,7 @@
             </div>
             <div class="text-shadow" style="color: white;margin-bottom: 3px;margin-top: 3px;">{{ enemy&&enemy.user ? enemy.user.uname:'' }}</div>
             <span class="shadow" v-if="enemy&&enemy.rice" style="color: #42413c;background-image: linear-gradient(120deg, #f6d365 0%, #fda085 100%);border-radius: 5px;padding: 2px;">
-              {{ enemy&&enemyStatus? enemyStatus:'' | statusFilter }}
+              {{ enemy && enemyStatus? enemyStatus:'' | statusFilter }}
             </span>
             <span class="shadow" v-if="enemy&&enemy.rice" style="color: #42413c;background-image: linear-gradient(120deg, #f6d365 0%, #fda085 100%);border-radius: 5px;padding: 2px;margin-left: 5px">
               {{ enemy&&enemy.rice ? enemy.rice+'米':'' }}
@@ -57,9 +57,9 @@
           <img class="shadow" src="../../assets/whiteboard.svg" alt="" width="100%" height="100%">
           <span style="position: absolute; top: 10px; left: calc(50% - 2em);">本回战况</span>
           <span style="position: absolute; top: calc(20px + 1em); right: calc(50%);">{{ enemy&&enemy.user ? enemy.user.uname:'' }}:</span>
-          <span style="position: absolute; top: calc(20px + 1em); left: calc(50%);">{{ enemy ? enemy.score:'' }}</span>
+          <span style="position: absolute; top: calc(20px + 1em); left: calc(50%);">{{ enemyScore ? enemyScore:'0' }}</span>
           <span style="position: absolute; top: calc(25px + 2em); right: calc(50%);">{{ player&&player.user ? player.user.uname:'' }}:</span>
-          <span style="position: absolute; top: calc(25px + 2em); left: calc(50%);">{{ player ? player.score:'' }}</span>
+          <span style="position: absolute; top: calc(25px + 2em); left: calc(50%);">{{ playerScore ? playerScore:'0' }}</span>
         </div>
       </el-col>
       <el-col :span="8">
@@ -164,10 +164,23 @@
     </el-row>
 
     <el-row class="row-one">
+<!--      <el-col class="loc-center" :span="4">-->
+<!--        <div>-->
+<!--          <img class="shadow" v-if="player&&player.user" width="30%" style="border-radius: 50%;" alt="玩家1" src="../../assets/player1.jpg">-->
+<!--          <div class="text-shadow" style="color: white">{{ player&&player.user? player.user.uname:'' }}</div>-->
+<!--        </div>-->
+<!--      </el-col>-->
       <el-col class="loc-center" :span="4">
-        <div>
-          <img class="shadow" v-if="player&&player.user" width="30%" style="border-radius: 50%;" alt="玩家1" src="../../assets/player1.jpg">
-          <div class="text-shadow" style="color: white">{{ player&&player.user? player.user.uname:'' }}</div>
+        <div class="loc-center" style="position: relative;width: 100%;height: 100%;">
+          <div>
+            <div class="loc-center" style="width: 100%;height: 100%;">
+              <img class="shadow" v-if="player&&player.user" width="30%" style="border-radius: 50%" alt="玩家1" src="../../assets/player1.jpg">
+            </div>
+            <div class="text-shadow" style="color: white;margin-bottom: 3px;margin-top: 3px;">{{ player&&player.user ? player.user.uname:'' }}</div>
+            <span class="shadow" v-if="player&&player.rice" style="color: #42413c;background-image: linear-gradient(120deg, #f6d365 0%, #fda085 100%);border-radius: 5px;padding: 2px;">
+              {{ (player && currentStatus) ? currentStatus:'' | statusFilter }}
+            </span>
+          </div>
         </div>
       </el-col>
 
@@ -256,6 +269,8 @@ export default {
       player: null,
       enemy: null,
       winner: null,
+      enemyScore: 0,
+      playerScore: 0,
 
       hasFirstInInit: false, // 是否执行了第一次连接后的初始化
 
@@ -434,20 +449,22 @@ export default {
         case 'SHOW_OUT': // 第一阶段出牌结束
           this.roomInfo = redata.data
           this.refreshByRoomInfo();
-          setTimeout(()=>{
-            this.showBright = true
-            this.canPlayCard = true
-          },2000)
+          this.showBright = true
+          this.canPlayCard = true
+          this.enemyScore = this.enemy.score
+          this.playerScore = this.player.score
           break
         case 'HIDE_OUT':  // 第二阶段出牌结束
           this.roomInfo = redata.data
           this.refreshByRoomInfo();
           setTimeout(()=>{
             this.showHide = true
+            this.enemyScore = this.enemy.score
+            this.playerScore = this.player.score
             this.$message({
               message: '你可以选择修改环境或结束本回合'
             });
-          },2000)
+          },500)
           break
         case 'END_OUT':  // 回合结束
           this.roomInfo = redata.data
@@ -456,6 +473,8 @@ export default {
             this.showChangeRice = false
           },2000)
           this.refreshByRoomInfo()
+          this.enemyScore = this.enemy.score
+          this.playerScore = this.player.score
           break
         case 'GAME_OVER': // 游戏结束
           this.roomInfo = redata.data
