@@ -17,7 +17,12 @@
 
       <el-col :span="16" >
         <el-row style="height: 100%;" :gutter="5" type="flex" justify="end">
-          <el-col class="loc-center" :span="3" v-for="(idleCard,index) in enemy?enemy.idleCardList:[]" :key="'key1'+index">
+          <el-col class="loc-center" :span="3" v-for="(idleCard,index) in (enemy && enemy.idleCardMap)?enemy.idleCardMap['env']:[]" :key="'key1env'+index">
+            <el-card class="box-card loc-center card-back" :body-style="{ padding: '0px'}">
+              <img src="../../assets/ant.png" alt="蚂蚁" height="50">
+            </el-card>
+          </el-col>
+          <el-col class="loc-center" :span="3" v-for="(idleCard,index) in (enemy && enemy.idleCardMap)?enemy.idleCardMap['ant']:[]" :key="'key1ant'+index">
             <el-card class="box-card loc-center card-back" :body-style="{ padding: '0px'}">
               <img src="../../assets/ant.png" alt="蚂蚁" height="50">
             </el-card>
@@ -62,6 +67,8 @@
           <span style="position: absolute; top: calc(25px + 2em); left: calc(50%);">{{ playerScore ? playerScore:'0' }}</span>
         </div>
       </el-col>
+
+<!--      场上牌面-->
       <el-col :span="8">
         <el-row class="center-row" :gutter="5">
           <el-col :span="6" v-for="(showCard,index) in enemy? enemy.showCardList:[]" :key="'key2'+index" class="loc-center">
@@ -132,6 +139,8 @@
           </el-col>
         </el-row>
       </el-col>
+
+<!--      右侧按钮-->
       <el-col :span="8" class="loc-center" >
         <el-tooltip effect="light" content="双方回合结束点我，用粮食补充兵力" placement="top">
           <img class="shadow" src="../../assets/ant1.png" alt="野外" height="40%" @click="drawCard()" style="cursor: pointer;">
@@ -164,6 +173,7 @@
     </el-row>
 
     <el-row class="row-one">
+<!--      自己的头像-->
       <el-col class="loc-center" :span="4">
         <div class="loc-center" style="position: relative;width: 100%;height: 100%;">
           <div>
@@ -178,10 +188,21 @@
         </div>
       </el-col>
 
+<!--      自己的手牌-->
       <el-col :span="16">
         <el-row style="height: 100%;" :gutter="5">
-          <el-col :span="3" v-for="(idleCard,index) in player?player.idleCardList:[]" :key="'key6'+index" class="loc-center">
-            <el-card :class="idleCard.shadow?'selected-card':'box-card card-front'" :shadow="idleCard.shadow? 'always':'never'" :body-style="cardBodyStyle" @click.native="idleCard.shadow = selectCard(index, idleCard.shadow)" style="cursor: pointer;">
+          <el-col :span="3" v-for="(idleCard,index) in (player && player.idleCardMap)?player.idleCardMap['env']:[]" :key="'key6env'+index" class="loc-center">
+            <el-card :class="idleCard.shadow?'selected-card':'box-card card-front'" :shadow="idleCard.shadow? 'always':'never'" :body-style="cardBodyStyle" @click.native="idleCard.shadow = selectCard(index, idleCard)" style="cursor: pointer;">
+              <div>
+                <div class="loc-center"><strong style="font-size: medium;">{{ idleCard.name }}</strong></div>
+                <div><span>消耗米粒：</span><span>{{ idleCard.rice }}</span></div>
+                <div><span>基础战力：</span><span>{{ idleCard.initValue }}</span></div>
+                <div v-for="relateCard in idleCard.relationList"><span>{{ relateCard.name }}：</span><span>{{ relateCard.valueImpact }}</span></div>
+              </div>
+            </el-card>
+          </el-col>
+          <el-col :span="3" v-for="(idleCard,index) in (player && player.idleCardMap)?player.idleCardMap['ant']:[]" :key="'key6ant'+index" class="loc-center">
+            <el-card :class="idleCard.shadow?'selected-card':'box-card card-front'" :shadow="idleCard.shadow? 'always':'never'" :body-style="cardBodyStyle" @click.native="idleCard.shadow = selectCard(index, idleCard)" style="cursor: pointer;">
               <div>
                 <div class="loc-center"><strong style="font-size: medium;">{{ idleCard.name }}</strong></div>
                 <div><span>消耗米粒：</span><span>{{ idleCard.rice }}</span></div>
@@ -193,6 +214,7 @@
         </el-row>
       </el-col>
 
+<!--      自己的粮仓-->
       <el-col class="loc-center" :span="4">
         <div style="position: relative;width: 100%;height: 100%">
           <img class="shadow" src="../../assets/rice.png" alt="" width="100%" height="100%">
@@ -206,6 +228,7 @@
       </el-col>
     </el-row>
 
+<!--    抽牌弹窗-->
     <el-dialog
         title="确认"
         :visible.sync="drawCardDialogVisible"
@@ -217,6 +240,7 @@
       </span>
     </el-dialog>
 
+<!--    游戏结束弹窗-->
     <div class='pop-frosted loc-center' v-if="gameOverDialogVisible" @click="gameOverDialogVisible = false">
       <div style="width: 30%;">
         <div v-if="winner&&winner.user&&winner.user.uid != user.uid">
@@ -230,6 +254,7 @@
       </div>
     </div>
 
+<!--    对方中途退出弹窗-->
     <el-dialog
         title="对方已离开，游戏结束"
         :visible.sync="enemyQuitDialogVisible"
@@ -563,6 +588,17 @@ export default {
       }
     },
     /**
+     * 对象转Map
+     */
+    objToMap(obj){
+      let tempMap =  new Map(Object.entries(obj))
+      let resultMap = new Map()
+      tempMap.forEach((value,key) => {
+        resultMap[key] = value
+      })
+      return resultMap
+    },
+    /**
      * 根据RoomInfo更新数据
      */
     refreshByRoomInfo(){
@@ -572,28 +608,53 @@ export default {
         if (item.user.uid == this.user.uid) {
           this.player = item
           this.currentStatus = item.state
-          if (this.player.idleCardList) {
-            this.player.idleCardList.forEach((card) => {
-              this.$set(card, 'shadow', false)
+          if (this.player.idleCardMap) {
+            this.player.idleCardMap = this.objToMap(this.player.idleCardMap)
+            this.player.idleCardMap.forEach((value, key) => {
+              value.forEach((card) => {
+                this.$set(card, 'shadow', false)
+              })
             })
             if (this.playCardList.length > 0) {
               for (let i=0;i<this.playCardList.length;i++){
-                this.player.idleCardList[this.playCardList[i]].shadow = true
+                let cardTagArr = this.playCardList[i].split('@')
+                this.player.idleCardMap[cardTagArr[0]][cardTagArr[1]].shadow = true
               }
             }
           }
         } else {
           this.enemy = item
           this.enemyStatus = item.state
+          if (this.enemy.idleCardMap) {
+            this.enemy.idleCardMap = this.objToMap(this.enemy.idleCardMap)
+          }
         }
       })
       this.fistIn()
     },
     /**
+     * 转换卡牌的类别为字符串
+     * @param intType
+     */
+    strCardType(intType){
+      intType = parseInt(intType)
+      let strType = ''
+      switch (intType) {
+        case 0:
+          strType = 'ant'
+          break
+        case 1:
+          strType = 'env'
+          break
+      }
+      return strType
+    },
+    /**
      * 选择卡片
      * @param index
      */
-    selectCard(index, shadow){
+    selectCard(index, idleCard){
+      let shadow = idleCard.shadow
       if (!shadow && this.playCardList.length>=2){
         let message = '只能选两张牌'
         if (this.currentStatus == 'SHOW_START') {
@@ -607,12 +668,13 @@ export default {
         });
         return shadow
       } else {
-        let index2 = this.playCardList.indexOf(index)
+        let cardTag = this.strCardType(idleCard.type) + '@' +index
+        let index2 = this.playCardList.indexOf(cardTag)
         if (index2 > -1) {
           this.playCardList.splice(index2, 1)
         }
         if (!shadow){
-          this.playCardList.push(index);
+          this.playCardList.push(cardTag);
         }
         return !shadow
       }
@@ -621,18 +683,54 @@ export default {
      * 前端假装出牌
      */
     frontPlayCards(){
-      if (this.playCardList[0]>this.playCardList[1]) {
-        this.player.idleCardList.splice(this.playCardList[0], 1)
-        this.player.idleCardList.splice(this.playCardList[1], 1)
+      let firstCardArr = this.playCardList[0].split('@')
+      let secCardArr = this.playCardList[1].split('@')
+      if (this.isCardToPlaySameType()) {
+        if (parseInt(firstCardArr[1]) > parseInt(secCardArr[1])) {
+          this.player.idleCardMap[firstCardArr[0]].splice(parseInt(firstCardArr[1]), 1)
+          this.player.idleCardMap[secCardArr[0]].splice(parseInt(secCardArr[1]), 1)
+        } else {
+          this.player.idleCardMap[secCardArr[0]].splice(parseInt(secCardArr[1]), 1)
+          this.player.idleCardMap[firstCardArr[0]].splice(parseInt(firstCardArr[1]), 1)
+        }
       } else {
-        this.player.idleCardList.splice(this.playCardList[1], 1)
-        this.player.idleCardList.splice(this.playCardList[0], 1)
+        this.player.idleCardMap[firstCardArr[0]].splice(parseInt(firstCardArr[1]), 1)
+        this.player.idleCardMap[secCardArr[0]].splice(parseInt(secCardArr[1]), 1)
       }
+    },
+    /**
+     * 判断要出的两张牌是否为一个类型
+     */
+    isCardToPlaySameType () {
+      let isSameType = false
+      if(this.playCardList[0].split('@')[0] === this.playCardList[1].split('@')[0]) {
+        isSameType = true
+      }
+      return isSameType
+    },
+    /**
+     * 检查待出牌列表里的牌是否有环境牌
+     */
+    isPlayCardValid(){
+      let valid = true
+      this.playCardList.forEach((cardTag) => {
+        if (cardTag.split('@')[0] === 'env') {
+          valid = false
+        }
+      })
+      return valid
     },
     /**
      * 出牌
      */
     playCards(){
+      if (!this.isPlayCardValid()) {
+        this.$message({
+          message: '环境牌只能单独出！',
+          type: "warning",
+        });
+        return
+      }
       if (this.canPlayCard) {
         this.canPlayCard = false
         if (this.playCardList.length == 2 && this.currentStatus == 'SHOW_START') {
