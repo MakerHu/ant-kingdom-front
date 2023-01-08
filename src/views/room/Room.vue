@@ -40,11 +40,11 @@
               <img class="shadow" v-if="enemy&&enemy.user" width="30%" style="border-radius: 50%" alt="玩家2" src="../../assets/player2.jpg">
             </div>
             <div class="text-shadow" style="color: white;margin-bottom: 3px;margin-top: 3px;">{{ enemy&&enemy.user ? enemy.user.uname:'' }}</div>
-            <span class="shadow" v-if="enemy&&enemy.rice" style="color: #42413c;background-image: linear-gradient(120deg, #f6d365 0%, #fda085 100%);border-radius: 5px;padding: 2px;">
+            <span class="shadow" v-if="enemy&&enemyStatus" style="color: #42413c;background-image: linear-gradient(120deg, #f6d365 0%, #fda085 100%);border-radius: 5px;padding: 2px;">
               {{ enemy && enemyStatus? enemyStatus:'' | statusFilter }}
             </span>
-            <span class="shadow" v-if="enemy&&enemy.rice" style="color: #42413c;background-image: linear-gradient(120deg, #f6d365 0%, #fda085 100%);border-radius: 5px;padding: 2px;margin-left: 5px">
-              {{ enemy&&enemy.rice ? enemy.rice+'米':'' }}
+            <span class="shadow" v-if="enemy&&enemyStatus&&(enemyStatus!=='UNREADY')" style="color: #42413c;background-image: linear-gradient(120deg, #f6d365 0%, #fda085 100%);border-radius: 5px;padding: 2px;margin-left: 5px">
+              {{ enemy&&enemy.rice ? enemy.rice+'米':'0米' }}
             </span>
           </div>
           <transition name="fade">
@@ -181,7 +181,7 @@
               <img class="shadow" v-if="player&&player.user" width="30%" style="border-radius: 50%" alt="玩家1" src="../../assets/player1.jpg">
             </div>
             <div class="text-shadow" style="color: white;margin-bottom: 3px;margin-top: 3px;">{{ player&&player.user ? player.user.uname:'' }}</div>
-            <span class="shadow" v-if="player&&player.rice" style="color: #42413c;background-image: linear-gradient(120deg, #f6d365 0%, #fda085 100%);border-radius: 5px;padding: 2px;">
+            <span class="shadow" v-if="player&&currentStatus" style="color: #42413c;background-image: linear-gradient(120deg, #f6d365 0%, #fda085 100%);border-radius: 5px;padding: 2px;">
               {{ (player && currentStatus) ? currentStatus:'' | statusFilter }}
             </span>
           </div>
@@ -267,17 +267,6 @@
     </el-dialog>
 
 <!--    改造环境弹窗-->
-<!--    <el-dialog-->
-<!--        title="改造环境"-->
-<!--        :visible.sync="changeEnvDialogVisible"-->
-<!--        width="30%">-->
-<!--      <span>改造环境需要的最少投入为：{{ roomInfo ? roomInfo.environmentRice:'' }}</span>-->
-<!--      <el-input v-model="playerEnvRice" placeholder="改造投入"></el-input>-->
-<!--      <span slot="footer" class="dialog-footer">-->
-<!--        <el-button @click="changeEnvDialogVisible = false">取 消</el-button>-->
-<!--        <el-button type="primary" @click="confirmChangeEvn()">确 定</el-button>-->
-<!--      </span>-->
-<!--    </el-dialog>-->
     <transition name = "fade">
       <div class='pop-frosted loc-center' v-if="changeEnvDialogVisible">
         <div style="width: 30%;">
@@ -533,8 +522,16 @@ export default {
         case 'REFRESH': // 刷新牌局
           this.roomInfo = redata.data
           this.refreshByRoomInfo();
-          this.enemyScore = this.enemy.score
-          this.playerScore = this.player.score
+          this.refreshScore()
+          break
+        case 'CHANGE_ENV': // 改造环境
+          this.roomInfo = redata.data
+          this.refreshByRoomInfo();
+          this.refreshScore()
+          this.$message({
+            message: '对方改造了环境',
+            type: "success",
+          });
           break
         case 'START': // 开始
           this.roomInfo = redata.data
@@ -550,16 +547,14 @@ export default {
             offset: 150
           });
           this.refreshByRoomInfo();
-          this.enemyScore = this.enemy.score
-          this.playerScore = this.player.score
+          this.refreshScore()
           break
         case 'SHOW_OUT': // 第一阶段出牌结束
           this.roomInfo = redata.data
           this.refreshByRoomInfo();
           this.showBright = true
           this.canPlayCard = true
-          this.enemyScore = this.enemy.score
-          this.playerScore = this.player.score
+          this.refreshScore()
           break
         case 'HIDE_OUT':  // 第二阶段出牌结束
           this.roomInfo = redata.data
@@ -580,8 +575,7 @@ export default {
             this.showChangeRice = false
           },2000)
           this.refreshByRoomInfo()
-          this.enemyScore = this.enemy.score
-          this.playerScore = this.player.score
+          this.refreshScore()
           break
         case 'GAME_OVER': // 游戏结束
           this.roomInfo = redata.data
@@ -661,7 +655,13 @@ export default {
         clearInterval(this.wsTimer)
       }
     },
-
+    /**
+     * 更新分数板分数
+     */
+    refreshScore(){
+      this.enemyScore = (this.enemy && this.enemy.score) ? this.enemy.score:0
+      this.playerScore = (this.player && this.player.score) ? this.player.score:0
+    },
     /**
      * 准备游戏
      */
